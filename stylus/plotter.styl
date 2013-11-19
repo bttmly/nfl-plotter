@@ -1,0 +1,377 @@
+@import "basic-mixins"
+
+transDuration = .15s
+transEasing = ease-in-out
+
+liteGreen = rgba(46, 204, 113,1.0)
+liteBlue = rgba(52, 152, 219,1.0)
+litePurple = rgba(155, 89, 182,1.0)
+liteRed = rgba(231, 76, 60,1.0)
+liteOrange = rgba(230, 126, 34,1.0)
+liteYellow = rgba(241, 196, 15,1.0)
+sortaDark = rgba(52, 73, 94,1.0)
+
+*, *:before, *:after
+  box-sizing border-box
+  transition width transDuration transEasing, color transDuration transEasing, background-color transDuration transEasing, border-color transDuration transEasing, border transDuration transEasing, opacity transDuration transEasing, outline transDuration transEasing, border transDuration transEasing
+
+html
+  font-size 100%
+  line-height 1.5
+  color sortaDark
+  &.wf-active
+  &.wf-inactive
+    color sortaDark
+  
+.column
+  width: 90%
+  margin-left auto
+  margin-right auto
+
+.container
+  width 88%
+  margin-left auto
+  margin-right auto
+
+body
+  font-weight 300
+  margin 2rem 0
+  
+
+// Styles for when highlight mode is active
+.plotter-highlight-mode 
+  body
+    background #eee
+  circle:not(.highlighted-dot)
+    fill rgba(0,0,0,.25)
+    &:hover
+      transform scale(1)
+  .pos-input:not(:checked) + .check-label
+  .yr-input:not(:checked) + .check-label
+    border 1px solid sortaDark
+    background-color transparent
+    color sortaDark
+    pointer-events none
+  .pos-input:checked
+  .yr-input:checked
+    & + .check-label
+      background #fff
+      &.blue-label
+        color liteBlue
+        border-color liteBlue
+      &.purple-label
+        color litePurple
+        border-color litePurple
+      &.red-label
+        color liteRed
+        border-color liteRed
+      &.orange-label
+        color liteOrange
+        border-color liteOrange
+      &.yellow-label
+        color liteYellow
+        border-color liteYellow
+      &.green-label
+        color liteGreen
+        border-color liteGreen
+      &.dark-label
+        color sortaDark
+        border-color sortaDark
+      &::after
+        border-color transparent
+    
+flat-label(color)
+  background-color color
+  border 1px solid transparent
+  &::after
+    border-color color
+  &.highlighted
+    background-color color !important
+    color #fff !important
+    &::after
+      border-color color !important
+      
+inline-row(children)
+  font-size 0
+  > *
+    font-size 1rem
+    display inline-block
+    width (100% / children)
+
+.pos-input, .yr-input
+  position absolute
+  left -500rem
+  &:focus + .check-label::after
+    opacity .6
+  &:checked + .check-label
+  &:checked + .check-label::after
+    opacity 1
+  
+
+.check-label
+  width 75%
+  display block
+  padding 1em
+  border-radius .125em
+  position relative
+  color white
+  opacity .6
+  margin 0 auto 1em auto
+  text-align center
+  cursor pointer
+  &::before
+    content ""
+    width 1em
+    height 1em
+    position absolute
+    right -2em
+    border 1px solid sortaDark
+    background transparent
+  &::after
+    content ""
+    width 1em
+    height 1.5em
+    position absolute
+    right -2em
+    top .5em
+    border .5em solid
+    border-left none
+    border-top none
+    transform rotate(45deg)
+    opacity 0
+  &:hover::after
+    opacity .6
+
+.blue-label
+  flat-label liteBlue
+
+.purple-label
+  flat-label litePurple
+
+.red-label
+  flat-label liteRed
+
+.orange-label
+  flat-label liteOrange
+
+.yellow-label
+  flat-label liteYellow
+
+.green-label
+  flat-label liteGreen
+
+.dark-label
+  flat-label sortaDark
+  
+.control-row
+  font-size 0
+  > *
+    font-size 1rem
+.control-col
+  display inline-block
+  vertical-align top
+  width 45%
+  &:first-of-type
+    margin-right 10%
+.chzn-container
+  box-sizing content-box
+  display block !important
+  width 15rem !important
+  max-width 75% !important
+  margin 0 auto 1rem auto
+  *
+    box-sizing content-box
+  .chzn-drop
+    transition all 0s ease
+    *
+      transition all 0s ease
+
+#avg-total-pair-holder        
+#pos-player-pair-holder
+  margin 0 auto 1rem auto
+
+#avg-total-pair-holder 
+  width 50%
+  
+#pos-player-pair-holder
+  width 75%
+
+.radio-pair
+  position absolute
+  left -500rem
+  & + label
+    color sortaDark
+    background-color #fff
+    width 50%
+    text-align center
+    display inline-block
+    cursor pointer
+    padding 1rem
+    border 1px solid sortaDark
+    &:first-of-type
+      border-right none
+      border-radius .25rem 0 0 .25rem
+    &:last-of-type
+      border-radius 0 .25rem .25rem 0
+  &:checked + label
+    background-color sortaDark
+    color liteGreen
+    opacity 1
+    cursor default
+  &:not(:checked) + label:hover
+    background-color rgba(44,62,80,.06)
+
+.var-label
+  display block
+  text-align center
+  margin-bottom .5rem
+  
+.btn
+  cursor pointer
+  border-radius .125rem
+  padding 1rem
+  background-color #eee
+  border none
+  font-family inherit
+  // font-weight 300
+
+#clear-player-select
+#render-button
+#highlight-button
+  display block
+  width 50%
+  margin 0 auto 1rem auto
+  font-size 1rem
+  box-sizing content-box
+  padding-left 0
+  padding-right 0
+
+lightenAmount = 15%
+
+#clear-player-select
+  width 100%
+
+#render-button
+  background-color liteGreen
+  color sortaDark
+  border-left 0px solid liteGreen
+  border-right 0px solid liteGreen
+  &:hover
+    border-left .5rem solid liteGreen
+    border-right .5rem solid liteGreen
+    // outline 1px solid rgba(52, 73, 94,1)
+    // background-color desaturate(lighten(liteGreen, lightenAmount), lightenAmount * .5)
+    // color desaturate(lighten(sortaDark, lightenAmount), lightenAmount * .5)
+  &:active
+    background-color rgba(39, 174, 96,1.0)
+    border-color rgba(39, 174, 96,1.0)
+    color rgba(44, 62, 80,1.0)
+
+#clear-player-select
+#highlight-button
+  background-color sortaDark
+  color liteGreen
+  border-left 0px solid sortaDark
+  border-right 0px solid sortaDark
+  &:hover
+    border-left .5rem solid sortaDark
+    border-right .5rem solid sortaDark
+    // background-color desaturate(lighten(sortaDark, lightenAmount), lightenAmount * .5)
+    // color desaturate(lighten(liteGreen, lightenAmount), lightenAmount * .5)
+  &:active
+    background-color rgba(44, 62, 80,1.0) 
+    border-color rgba(44, 62, 80,1.0) 
+    color rgba(39, 174, 96,1.0)
+
+// http://demosthenes.info/blog/744/Make-SVG-Responsive
+#scatterplot-wrapper
+  display inline-block
+  position relative
+  margin-left auto
+  margin-right auto
+  width 80%
+  padding-bottom 100%
+  vertical-align middle
+  svg
+    display inline-block
+    position absolute
+    top 0
+    left 0
+    
+@media screen and (min-width:  37.500em)
+  html
+    font-size: 112.5%
+  .column
+    width 80%
+  .container
+    width 85%
+
+@media screen and (min-width:  50.000em)
+	html
+	  font-size 125%
+  .column
+    width 70%
+
+@media screen and (min-width:  64.375em)
+	html
+	  font-size 137.5%
+  .column
+    width 65%
+
+@media screen and (max-width:  50em)
+  .control-col:nth-of-type(n)
+    width 100%
+    margin-left auto
+    margin-right auto
+
+.text-center
+  text-align center
+
+.bold
+  font-weight bold
+
+.italic
+  font-style italic
+
+h1
+  font-size 2.5rem
+
+h2
+  font-size 2rem
+  font-weight 100
+  margin-top 2rem
+  margin-bottom 1rem
+  border-bottom 1px solid #ccc
+
+.long-li-list
+  list-style none
+  margin 2rem 0 2rem 2rem
+  > li
+    margin-top 1rem
+    margin-bottom 1rem
+    padding-top 1rem
+    border-bottom 1px solid #ccc
+    &:last-of-type
+      border-bottom none
+p 
+  a 
+    color darken(liteGreen, 20%)
+    &:hover
+      color sortaDark
+
+.instructions
+  text-align center
+
+.copyright
+  text-align center
+  font-size 12px
+
+/*
+@media screen and (min-width:  75.000em) and (min-height: 31.250em)
+	html
+	  font-size 150%
+
+@media screen and (min-width:  103.125em) and (min-height: 50.000em)
+  html
+	  font-size 162.5%
+*/

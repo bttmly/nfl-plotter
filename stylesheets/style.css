@@ -1,0 +1,24 @@
+body {
+  margin: 2rem;
+}
+
+.container {
+  width: 40rem;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.chzn-choices input {
+                box-sizing: content-box;
+                min-width: 100% !important;
+                width: 100% !important;
+            }
+            
+            .chzn-container {
+                font-size: 16px !important;
+                margin: 0 auto 1rem auto;
+                box-sizing: content-box;
+                min-height: 18px !important;
+                display: block;
+            }
+

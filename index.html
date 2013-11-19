@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <link rel="stylesheet" href="/stylesheets/plotter.css">
+    <!-- link(rel='stylesheet', href='/stylesheets/svg-elements.css')-->
+    <script type="text/javascript" src="//use.typekit.net/rqw3sre.js"></script>
+    <script>try{Typekit.load();}catch(e){}</script>
+    <link rel="stylesheet" href="/stylesheets/chosen-relative.css">
+  </head>
+  <body>
+    <div class="column">
+      <h1 class="text-center">Plotter</h1>
+      <p class="text-center page-title italic">Generate scatterplots of NFL player stats. <a href="/about.html">Learn more...</a></p>
+      <!-- span.collapse.section-open-->
+      <!--  span COLLAPSE-->
+      <!--  | CONTROL GROUP-->
+      <div class="control-row">
+        <div id="pp-controls" class="control-col">
+          <p class="instructions">Choose a sort method.</p>
+          <div id="pos-player-pair-holder">
+            <input id="radio-positions" type="radio" name="pp-type" value="positions" class="radio-pair">
+            <label id="positions-label" for="radio-positions" class="radio-left">Positions</label>
+            <input id="radio-players" type="radio" name="pp-type" value="players" class="radio-pair">
+            <label id="players-label" for="radio-players" class="radio-right">Players</label>
+          </div>
+          <div data-input-group="players">
+            <select id="player-select" data-placeholder="Type to select players..." multiple="multiple" class="chzn-select"></select>
+            <button id="clear-player-select" class="btn">Clear selections.</button>
+          </div>
+          <div data-input-group="positions">
+            <input id="input-QB" type="checkbox" value="QB" class="pos-input">
+            <label for="input-QB" class="check-label blue-label">Quarterbacks</label>
+            <input id="input-RB" type="checkbox" value="RB" class="pos-input">
+            <label for="input-RB" class="check-label green-label">Running Backs</label>
+            <input id="input-TE" type="checkbox" value="TE" class="pos-input">
+            <label for="input-TE" class="check-label yellow-label">Tight Ends</label>
+            <input id="input-WR" type="checkbox" value="WR" class="pos-input">
+            <label for="input-WR" class="check-label orange-label">Wide Receivers</label>
+          </div>
+        </div>
+        <div id="season-controls" class="control-col">
+          <p data-for="seasons" class="instructions">Choose some seasons.</p>
+          <input id="input-2012" type="checkbox" value="2012" class="yr-input">
+          <label for="input-2012" class="check-label dark-label">2012</label>
+          <input id="input-2011" type="checkbox" value="2011" class="yr-input">
+          <label for="input-2011" class="check-label dark-label">2011      </label>
+          <input id="input-2010" type="checkbox" value="2010" class="yr-input">
+          <label for="input-2010" class="check-label dark-label">2010</label>
+          <input id="input-2009" type="checkbox" value="2009" class="yr-input">
+          <label for="input-2009" class="check-label dark-label">2009</label>
+          <input id="input-2008" type="checkbox" value="2008" class="yr-input">
+          <label for="input-2008" class="check-label dark-label">2008</label>
+        </div>
+      </div>
+      <!-- span.collapse.section-open-->
+      <!--  span COLLAPSE-->
+      <!--  | CONTROL GROUP-->
+      <div class="control-row">
+        <p data-for="xy-controls" class="instructions">Choose some variables.</p>
+        <div id="xy-controls" class="control-col">
+          <div>
+            <label class="var-label">x-Axis Variable</label>
+            <select id="x-select" data-axis="xAxis" data-placeholder="Choose a stat..." class="variable"></select>
+          </div>
+          <div>
+            <label class="var-label">y-Axis Variable</label>
+            <select id="y-select" data-axis="yAxis" data-placeholder="Choose a stat..." class="variable"></select>
+          </div>
+        </div>
+        <div id="rc-controls" class="control-col">
+          <div>
+            <label class="var-label">Dot Radius Variable</label>
+            <select id="r-select" data-axis="rAxis" data-placeholder="Choose a stat..." class="variable"></select>
+          </div>
+          <div>
+            <label class="var-label">Color Shade Variable</label>
+            <select id="c-select" data-axis="cAxis" data-placeholder="Choose a stat..." class="variable"></select>
+          </div>
+        </div>
+        <p class="text-center">Choose a count method.</p>
+        <div id="avg-total-pair-holder">
+          <input id="season-stats" type="radio" name="stat-type" value="season" class="radio-pair">
+          <label id="season-label" for="season-stats" class="radio-left">Season</label>
+          <input id="game-stats" type="radio" name="stat-type" value="game" class="radio-pair">
+          <label id="game-label" for="game-stats" class="radio-right">Game Avg.</label>
+        </div>
+      </div>
+      <div class="control-row render-wrapper">
+        <div class="button-holder">
+          <button id="render-button" class="btn">Render</button>
+          <button id="highlight-button" class="btn">Highlight Mode</button>
+        </div>
+      </div>
+      <div class="error-warning-log">
+        <!-- span.dismiss-errors Dismiss-->
+      </div>
+    </div>
+    <div id="scatterplot-wrapper" class="column"></div>
+    <div id="hover-data" draggable="true" class="column hover-data">
+      <p><span id="player-name-year">&nbsp;</span></p>
+      <p id="x-axis-data">(X-Axis)<span id="x-axis-data-name"></span><span id="x-axis-data-value"></span></p>
+      <p id="y-axis-data">(Y-Axis)<span id="y-axis-data-name"></span><span id="y-axis-data-value"></span></p>
+      <p id="r-axis-data">(Radius Size Stat)<span id="r-axis-data-name"></span><span id="r-axis-data-value"></span></p>
+      <p id="c-axis-data">(Color Shade Stat)<span id="c-axis-data-name"> </span><span id="c-axis-data-value"></span></p>
+    </div>
+    <select id="original" style="display: none;">
+      <option></option>
+      <optgroup label="Passing">
+        <option data-stat="PassComp">Pass Completions</option>
+        <option data-stat="PassAtt">Pass Attempts</option>
+        <option data-stat="PassYds">Pass Yards</option>
+        <option data-stat="PassTD">Pass TD</option>
+        <option data-stat="PassINT">Interceptions</option>
+      </optgroup>
+      <optgroup label="Rushing">
+        <option data-stat="RushAtt">Rush Attempts</option>
+        <option data-stat="RushYds">Rush Yards</option>
+        <option data-stat="RushTD">Rush TD</option>
+        <option data-stat="RushYPA">Yards per Rush</option>
+        <optgroup label="Receiving">
+          <option data-stat="Recs">Receptions</option>
+          <option data-stat="RecYards">Receiving Yards</option>
+          <option data-stat="RecYPR">Yards per Reception</option>
+          <option data-stat="RecTD">Receiving Touchdowns</option>
+        </optgroup>
+        <optgroup label="Total">
+          <option data-stat="ScrimYds">Total Scrimmage Yards</option>
+          <option data-stat="TotalTD">Total Touchdowns</option>
+        </optgroup>
+        <optgroup label="Fantasy">
+          <option data-stat="FantPt">Fantasy Points</option>
+          <option data-stat="PosRank">Fantasy Position Rank</option>
+          <option data-stat="VBD">VBD Points</option>
+          <option data-stat="OvRank">VBD Rank</option>
+        </optgroup>
+        <optgroup label="Misc.">
+          <option data-stat="Season">Season</option>
+          <option data-stat="Age">Age</option>
+          <option data-stat="G">Games Played</option>
+          <option data-stat="GS">Games Started</option>
+        </optgroup>
+      </optgroup>
+    </select>
+    <p class="copyright">Built by Nick Bottomley, 2013</p>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="/javascripts/jquery-1.9.1.min.js"><\/script>')</script>
+    <script src="/js/d3.min.js"></script>
+    <script src="/js/chosen.jquery.min.js"></script>
+    <script src="/js/color.js"></script>
+    <script>var Color = net.brehaut.Color;</script>
+    <!-- script(src="/js/plotter-revealing.js")-->
+    <script src="/js/plotter-module.js"></script>
+    <!-- script(src="/js/plotter.js")-->
+  </body>
+</html>

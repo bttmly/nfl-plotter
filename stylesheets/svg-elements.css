@@ -1,0 +1,32 @@
+circle:hover {
+    -webkit-transform: scale(2);
+    -moz-transform: scale(2);
+    -ms-transform: scale(2);
+    -o-transform: scale(2);
+    transform: scale(2);
+}
+
+circle {
+    cursor: pointer;
+    -webkit-transition: -webkit-transform .2s ease-in-out;
+    -moz-transition: -moz-transform .2s ease-in-out;
+    -o-transition: -o-transform .2s ease-in-out;
+    transition: -webkit-transform .2s ease-in-out;
+    transition: -moz-transform .2s ease-in-out;
+    transition: -ms-transform .2s ease-in-out;
+    transition: -o-transform .2s ease-in-out;
+    transition: transform .2s ease-in-out;
+    -webkit-transform-origin: center center;
+    -moz-transform-origin: center center;
+    -ms-transform-origin: center center;
+    -o-transform-origin: center center;
+    transform-origin: center center;
+}
+svg path.domain {
+  fill: none;
+  stroke: #000;
+  strokecap: butt;
+}
+svg text {
+  font-family: open-sans, "Open Sans", sans-serif;
+}

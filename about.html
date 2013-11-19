@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <link rel="stylesheet" href="/stylesheets/plotter.css">
+    <!-- link(rel='stylesheet', href='/stylesheets/svg-elements.css')-->
+    <script type="text/javascript" src="//use.typekit.net/rqw3sre.js"></script>
+    <script>try{Typekit.load();}catch(e){}</script>
+  </head>
+  <body>
+    <div class="column">
+      <h1 class="text-center">About</h1>
+      <p>This tool is still in development and should not be considered a finished product. </p>
+      <h2>Purpose</h2>
+      <p>Plotter is a tool that creates scatterplots of NFL player data. It was developed specifically with fantasy football in mind, to help visualize trends that occur over time at a positional level. For instance, graphing fantasy points against position rank for 2012 and 2008 shows that in general the <em>n</em>-th highest scoring running back contributed substantially more points over a season in 2008 than in 2012. These kinds of insights can–and should–inform draft strategy and roster construction.</p>
+      <h2>Design</h2>
+      <p>I based the visual style on a set of <a href="http://cssdeck.com/labs/flat-forms">flat form elements</a> I had previously developed. Colors are cribbed from <a href="http://flatuicolors.com">Flat UI Colors</a>. The typeface used here is <a href="http://www.janfromm.de/typefaces/camingodos/overview/">CamingoDos Web</a>, served by <a href="https://typekit.com/fonts">Typekit</a>.</p>
+      <h2>Code</h2>
+      <p>Plotter runs entirely on client-side JavaScript. The chart drawing function uses <a href="http://d3js.org/">d3.js</a>, a great data visualization library. Other libraries include: <a href="http://brehaut.net/code/color">Color.js</a> for color manipulation; <a href="http://harvesthq.github.io/chosen/">Chosen.js</a> with a <a href="https://github.com/nickb1080/chosen/blob/master/public/chosen.css">custom stylesheet</a> using relative units and a tiny data-URI font for icons; and of course <a href="http://jquery.com/">jQuery</a>.</p>
+      <h2>Data</h2>
+      <p>This dataset is collected from the <a href="http://www.pro-football-reference.com/years/2012/fantasy.htm">fantasy stats</a> provided by PFR. Currently it contains the top 60 players per season at each of the four offensive fantasy football positions. I Plan to continue to update it annually.</p>
+      <h2>Future</h2>
+      <p>There are a number of tweaks, updates, and improvements I plan to make.</p>
+      <ul class="long-li-list">
+        <li>Add a slider that will set the limit on the position rank of the players returned. For instance, a user could view only the top 20 running backs rather than getting all 60.</li>
+        <li>Retain the JSON dataset with <code>localStorage</code>, and add some kind of version detection to load and save the dataset from the server when it's updated.</li>
+        <li>Improve input validation and provide contextual help when users fail to complete the fields required to produce a scatterplot.</li>
+      </ul>
+    </div>
+    <p class="copyright">Built by Nick Bottomley, 2013</p>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="/javascripts/jquery-1.9.1.min.js"><\/script>')</script>
+  </body>
+</html>

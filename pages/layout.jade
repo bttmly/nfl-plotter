@@ -1,0 +1,19 @@
+doctype 5
+html
+  head
+    title= title
+    meta(name="viewport", content="width=device-width, initial-scale=1")
+    meta(charset="utf-8")
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='/stylesheets/plotter.css')
+    // link(rel='stylesheet', href='/stylesheets/svg-elements.css')
+    script(type="text/javascript", src="//use.typekit.net/rqw3sre.js")
+    script.
+      try{Typekit.load();}catch(e){}
+    block head
+  body
+    block content
+    
+    
+    p.copyright Built by Nick Bottomley, 2013
+    block body-scripts

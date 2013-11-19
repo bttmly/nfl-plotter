@@ -1,0 +1,152 @@
+extends layout
+
+block head
+  link(rel="stylesheet", href="/stylesheets/chosen-relative.css")
+
+block content
+  .column
+    h1.text-center Plotter
+    p.text-center.page-title.italic Generate scatterplots of NFL player stats. <a href="/about">Learn more...</a>
+    // span.collapse.section-open
+    //  span COLLAPSE
+    //  | CONTROL GROUP
+    div.control-row
+      div#pp-controls.control-col
+        p.instructions Choose a sort method.
+        
+        div#pos-player-pair-holder
+          input.radio-pair#radio-positions(type='radio', name='pp-type', value='positions')
+          label#positions-label.radio-left(for='radio-positions') Positions
+          input.radio-pair#radio-players(type='radio', name='pp-type', value='players')
+          label#players-label.radio-right(for='radio-players') Players
+
+        div(data-input-group="players")
+          select#player-select.chzn-select(data-placeholder='Type to select players...', multiple='multiple')
+          button.btn#clear-player-select Clear selections.
+          
+        div(data-input-group="positions")
+          input.pos-input#input-QB(type='checkbox', value='QB')
+          label.check-label.blue-label(for='input-QB') Quarterbacks
+          input.pos-input#input-RB(type='checkbox', value='RB')
+          label.check-label.green-label(for='input-RB') Running Backs
+          input.pos-input#input-TE(type='checkbox', value='TE')
+          label.check-label.yellow-label(for='input-TE') Tight Ends
+          input.pos-input#input-WR(type='checkbox', value='WR')
+          label.check-label.orange-label(for='input-WR') Wide Receivers
+          
+      div#season-controls.control-col
+        p.instructions(data-for="seasons") Choose some seasons.
+        input.yr-input#input-2012(type="checkbox", value="2012")
+        label.check-label.dark-label(for="input-2012") 2012
+        input.yr-input#input-2011(type="checkbox", value="2011")
+        label.check-label.dark-label(for="input-2011") 2011      
+        input.yr-input#input-2010(type="checkbox", value="2010")
+        label.check-label.dark-label(for="input-2010") 2010
+        input.yr-input#input-2009(type="checkbox", value="2009")
+        label.check-label.dark-label(for="input-2009") 2009
+        input.yr-input#input-2008(type="checkbox", value="2008")
+        label.check-label.dark-label(for="input-2008") 2008
+        
+    // span.collapse.section-open
+    //  span COLLAPSE
+    //  | CONTROL GROUP
+    div.control-row
+      p.instructions(data-for="xy-controls") Choose some variables.
+      div#xy-controls.control-col
+        div
+          label.var-label x-Axis Variable
+          select#x-select.variable(data-axis='xAxis', data-placeholder='Choose a stat...')
+        div
+          label.var-label y-Axis Variable
+          select#y-select.variable(data-axis='yAxis', data-placeholder='Choose a stat...')
+      div#rc-controls.control-col
+        div
+          label.var-label Dot Radius Variable
+          select#r-select.variable(data-axis='rAxis', data-placeholder='Choose a stat...')
+        div
+          label.var-label Color Shade Variable
+          select#c-select.variable(data-axis='cAxis', data-placeholder='Choose a stat...')
+      p.text-center Choose a count method.
+      
+      div#avg-total-pair-holder
+        input.radio-pair#season-stats(type='radio', name='stat-type', value='season')
+        label#season-label.radio-left(for='season-stats') Season
+        input.radio-pair#game-stats(type='radio', name='stat-type', value='game')
+        label#game-label.radio-right(for='game-stats') Game Avg.
+    div.control-row.render-wrapper
+      .button-holder
+        button.btn#render-button Render
+        button.btn#highlight-button Highlight Mode
+    div.error-warning-log
+      // span.dismiss-errors Dismiss
+      
+      
+  div.column#scatterplot-wrapper
+  
+  div#hover-data.column.hover-data(draggable="true")
+    p
+      span#player-name-year &nbsp;
+    p#x-axis-data
+      | (X-Axis)
+      span#x-axis-data-name
+      span#x-axis-data-value
+    p#y-axis-data
+      | (Y-Axis)
+      span#y-axis-data-name
+      span#y-axis-data-value
+    p#r-axis-data
+      | (Radius Size Stat)
+      span#r-axis-data-name
+      span#r-axis-data-value
+    p#c-axis-data
+      | (Color Shade Stat)
+      span#c-axis-data-name  
+      span#c-axis-data-value
+
+  select#original(style='display: none;')
+    option
+    optgroup(label='Passing')
+      option(data-stat='PassComp') Pass Completions
+      option(data-stat='PassAtt') Pass Attempts
+      option(data-stat='PassYds') Pass Yards
+      option(data-stat='PassTD') Pass TD
+      option(data-stat='PassINT') Interceptions
+    optgroup(label='Rushing')
+      option(data-stat='RushAtt') Rush Attempts
+      option(data-stat='RushYds') Rush Yards
+      option(data-stat='RushTD') Rush TD
+      option(data-stat='RushYPA') Yards per Rush
+      optgroup(label='Receiving')
+        option(data-stat='Recs') Receptions
+        option(data-stat='RecYards') Receiving Yards
+        option(data-stat='RecYPR') Yards per Reception
+        option(data-stat='RecTD') Receiving Touchdowns
+      optgroup(label='Total')
+        option(data-stat='ScrimYds') Total Scrimmage Yards
+        option(data-stat='TotalTD') Total Touchdowns
+      optgroup(label='Fantasy')
+        option(data-stat='FantPt') Fantasy Points
+        option(data-stat='PosRank') Fantasy Position Rank
+        option(data-stat='VBD') VBD Points
+        option(data-stat='OvRank') VBD Rank
+      optgroup(label='Misc.')
+        option(data-stat='Season') Season
+        option(data-stat='Age') Age
+        option(data-stat='G') Games Played
+        option(data-stat='GS') Games Started
+  
+
+
+block body-scripts
+  script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js")
+  script.
+    window.jQuery || document.write('<script src="/javascripts/jquery-1.9.1.min.js"><\/script>')
+  script(src="/js/d3.min.js")
+  script(src="/js/chosen.jquery.min.js")
+  script(src="/js/color.js")
+  script.
+    var Color = net.brehaut.Color;
+  // script(src="/js/plotter-revealing.js")
+  script(src="/js/plotter-module.js")
+  // script(src="/js/plotter.js")
+  
