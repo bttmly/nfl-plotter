@@ -427,8 +427,15 @@ svg circle:hover {
 
 #hover-data {
   position: absolute;
-  top: 0;
+  top: 60rem;
   left:0;
+  width:16rem;
+  font-size:.5rem;
+  font-weight:bold;
+  border-radius:.25rem;
+  border:1px solid rgba(0,0,0,.25);
+  background:rgba(60,60,60,.50);
+  padding:1rem;
 }
 
 @media screen and (min-width:  37.500em) {
