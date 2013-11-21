@@ -261,8 +261,12 @@ window.Plotter = {
     $el.body.on("dragover", function(event) {
       return plotter.hoverLogDragOver(event, this);
     });
-    return $el.body.on("drop", function(event) {
+    $el.body.on("drop", function(event) {
       return plotter.hoverLogDrop(event, this);
+    });
+    return $el.body.on("click", "#show-me", function(event) {
+      event.preventDefault();
+      return plotter.demoStart();
     });
   },
   pageSetup: function(s) {
@@ -298,9 +302,9 @@ window.Plotter = {
     newSettings = this.settings();
     this.s.vals.selections = selected = this.getSelected(s.els);
     if (this.validateSelections(selected)) {
-      data.graphingSet = this.getGraphingData(selected, data.fullSet);
-      scales = this.calculateScales(selected, data.graphingSet);
-      return this.drawChart(data.graphingSet, selected, scales);
+      this.data.graphingSet = this.getGraphingData(selected, data.fullSet);
+      scales = this.calculateScales(selected, this.data.graphingSet);
+      return this.drawChart(this.data.graphingSet, selected, scales);
     }
   },
   resetGraphingData: function(s) {
@@ -716,19 +720,248 @@ window.Plotter = {
     return this.s.els.selectedPlayersLi().remove();
   },
   hoverLogDragStart: function(event) {
+    console.log("drag start");
     return event.dataTransfer.setData("text/plain", (parseInt(this.s.els.$log.css("left"), 10) - event.originalEvent.clientX) + ',' + (parseInt(this.s.els.$log.css("top"), 10) - event.originalEvent.clientY));
   },
   hoverLogDragOver: function(event) {
+    console.log("drag over");
     event.preventDefault();
     return false;
   },
   hoverLogDrop: function(event) {
     var offset;
+    console.log((event.originalEvent.clientX + parseInt(offset[0], 10)) + 'px');
+    console.log((event.originalEvent.clientY + parseInt(offset[1], 10)) + 'px');
     offset = event.dataTransfer.getData("text/plain").split(',');
     this.s.els.$log.css("left", (event.originalEvent.clientX + parseInt(offset[0], 10)) + 'px');
     this.s.els.$log.css("top", (event.originalEvent.clientY + parseInt(offset[1], 10)) + 'px');
     event.preventDefault();
     return false;
+  },
+  demoStart: function() {
+    var actions, allTimeouts, els, i, key, sequencedTimeouts, totalTime, val, _results;
+    els = this.s.els;
+    $("input:checked").prop("checked", false);
+    totalTime = 0;
+    allTimeouts = [];
+    sequencedTimeouts = function(i, obj) {
+      var delay, to;
+      delay = obj.delay || 1000;
+      totalTime += delay;
+      to = setTimeout(function() {
+        obj.fn();
+      }, totalTime);
+      return allTimeouts.push(to);
+    };
+    $.fn.extend({
+      fauxClick: function() {
+        var click, fromLeft, fromTop;
+        fromTop = this.offset().top + 25;
+        fromLeft = this.offset().left + 25;
+        click = $("<div class='faux-click'>").appendTo($("body"));
+        click.css({
+          top: fromTop,
+          left: fromLeft
+        });
+        setTimeout(function() {
+          click.remove();
+        }, 2000);
+        return this;
+      },
+      typeOut: function(str, callback) {
+        var $this, i, letter, letters, setDelay, _i, _len;
+        letters = str.split('');
+        $this = $(this);
+        setDelay = function(i, letter, cb) {
+          (function() {
+            return setTimeout(function() {
+              var enter, evtDown, evtUp;
+              evtDown = jQuery.Event('keydown', {
+                which: letter.charCodeAt(0)
+              });
+              evtUp = jQuery.Event('keyup', {
+                which: letter.charCodeAt(0)
+              });
+              $this.trigger(evtDown);
+              $this.val($this.val() + letter);
+              $this.trigger(evtUp);
+              if (cb) {
+                cb(i, letter);
+              }
+              if (i === letters.length - 1) {
+                enter = jQuery.Event('keyup', {
+                  which: 13
+                });
+                $this.trigger(enter);
+                return $this.trigger("blur");
+              }
+            }, 75 * i);
+          })();
+          if (!cb) {
+            return cb = $.noop;
+          }
+        };
+        for (i = _i = 0, _len = letters.length; _i < _len; i = ++_i) {
+          letter = letters[i];
+          setDelay(i, letter, callback);
+        }
+        return this;
+      }
+    });
+    actions = {
+      1: {
+        delay: 400,
+        fn: function() {
+          return els.body.animate({
+            scrollTop: $("#pp-controls").offset().top
+          });
+        }
+      },
+      2: {
+        delay: 400,
+        fn: function() {
+          return $("#positions-label").trigger("click").fauxClick();
+        }
+      },
+      3: {
+        delay: 400,
+        fn: function() {
+          return $("[for='input-RB']").trigger("click").fauxClick();
+        }
+      },
+      4: {
+        delay: 400,
+        fn: function() {
+          return $("[for='input-WR']").trigger("click").fauxClick();
+        }
+      },
+      5: {
+        delay: 400,
+        fn: function() {
+          return $("[for='input-2012']").trigger("click").fauxClick();
+        }
+      },
+      6: {
+        delay: 400,
+        fn: function() {
+          return $("[for='input-2011']").trigger("click").fauxClick();
+        }
+      },
+      7: {
+        delay: 400,
+        fn: function() {
+          return $("[for='input-2010']").trigger("click").fauxClick();
+        }
+      },
+      8: {
+        delay: 400,
+        fn: function() {
+          return els.body.animate({
+            scrollTop: $(".control-row").eq(1).offset().top
+          });
+        }
+      },
+      9: {
+        delay: 1000,
+        fn: function() {
+          $("#x-select").trigger("liszt:open");
+          return $("#x_select_chzn").fauxClick();
+        }
+      },
+      10: {
+        delay: 1000,
+        fn: function() {
+          return $("#x_select_chzn input").typeOut("fantasy position rank", function() {
+            return $.noop;
+          });
+        }
+      },
+      11: {
+        delay: 2000,
+        fn: function() {
+          $("#y-select").trigger("liszt:open");
+          return $("#y_select_chzn").fauxClick();
+        }
+      },
+      12: {
+        delay: 1000,
+        fn: function() {
+          return $("#y_select_chzn input").typeOut("fantasy points", function() {
+            return $.noop;
+          });
+        }
+      },
+      13: {
+        delay: 2000,
+        fn: function() {
+          $("#r-select").trigger("liszt:open");
+          return $("#r_select_chzn").fauxClick();
+        }
+      },
+      14: {
+        delay: 1000,
+        fn: function() {
+          return $("#r_select_chzn input").typeOut("total scrimmage yards", function() {
+            return $.noop;
+          });
+        }
+      },
+      15: {
+        delay: 2000,
+        fn: function() {
+          $("#c-select").trigger("liszt:open");
+          return $("#c_select_chzn").fauxClick();
+        }
+      },
+      16: {
+        delay: 1000,
+        fn: function() {
+          return $("#c_select_chzn input").typeOut("total touchdowns", function() {
+            return $.noop;
+          });
+        }
+      },
+      17: {
+        delay: 2000,
+        fn: function() {
+          return els.body.animate({
+            scrollTop: $("#avg-total-pair-holder").prev("p").offset().top
+          });
+        }
+      },
+      18: {
+        delay: 1000,
+        fn: function() {
+          return $("#season-label").trigger("click").fauxClick();
+        }
+      },
+      19: {
+        delay: 1000,
+        fn: function() {
+          return els.body.animate({
+            scrollTop: $("#render-button").offset().top
+          });
+        }
+      },
+      20: {
+        delay: 2000,
+        fn: function() {
+          return $("#render-button").fauxClick().trigger("click");
+        }
+      }
+    };
+    i = 0;
+    _results = [];
+    for (key in actions) {
+      val = actions[key];
+      console.log(key);
+      sequencedTimeouts(key, val);
+      _results.push(i++);
+    }
+    return _results;
+  },
+  demoStop: function() {
+    return console.log("hi");
   },
   data: {},
   utils: {

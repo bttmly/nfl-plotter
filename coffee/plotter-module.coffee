@@ -254,6 +254,11 @@ window.Plotter =
     $el.body.on "drop", (event) ->
       plotter.hoverLogDrop(event, this)
 
+    $el.body.on "click", "#show-me", (event) ->
+      event.preventDefault()
+      plotter.demoStart()
+
+
   pageSetup : (s) ->
     
     Plotter = this
@@ -290,14 +295,14 @@ window.Plotter =
     
     if @validateSelections(selected)
 
-      data.graphingSet = @getGraphingData(selected, data.fullSet)
+      @data.graphingSet = @getGraphingData(selected, data.fullSet)
       
-      scales = @calculateScales(selected, data.graphingSet)
+      scales = @calculateScales(selected, @data.graphingSet)
       
-      @drawChart(data.graphingSet, selected, scales)
+      @drawChart(@data.graphingSet, selected, scales)
 
   resetGraphingData : (s) ->
-    this.data.graphingSet = {}
+    @data.graphingSet = {}
     s.vals.selections = {}
 
   getSelected : (el) ->
@@ -391,18 +396,18 @@ window.Plotter =
     
     dataPoints = []
     
-    if sel.sortType == "positions"
+    if sel.sortType is "positions"
       for season in sel.seasons
         for position in sel.positions
           for player in data[season][position]
             dataPoints.push(player)
             
-    else if sel.sortType == "players"
+    else if sel.sortType is "players"
       for season in sel.seasons
         for position in data[season]
           for name in sel.players
             match = data[season][position].filter (player) ->
-              player.Name == name
+              player.Name is name
             if match.length 
               dataPoints.push(match)
     
@@ -742,20 +747,193 @@ window.Plotter =
   
   # these three drag & drop functions appropriated from http://stackoverflow.com/a/6239882/2942909
   hoverLogDragStart : (event) ->
+    console.log "drag start"
     event.dataTransfer.setData("text/plain",
     (parseInt( @s.els.$log.css( "left" ), 10) - event.originalEvent.clientX ) + ',' + (parseInt(@s.els.$log.css("top"),10) - event.originalEvent.clientY ) )
 
   hoverLogDragOver : (event) -> 
+    console.log "drag over"
     event.preventDefault()
     return false
 
   hoverLogDrop : (event) -> 
+    console.log (event.originalEvent.clientX + parseInt(offset[0],10)) + 'px'
+    console.log (event.originalEvent.clientY + parseInt(offset[1],10)) + 'px'
+
     offset = event.dataTransfer.getData("text/plain").split(',')
     @s.els.$log.css("left", (event.originalEvent.clientX + parseInt(offset[0],10)) + 'px' )
     @s.els.$log.css("top", (event.originalEvent.clientY + parseInt(offset[1],10)) + 'px' )
     event.preventDefault()
     return false
 
+  demoStart : ->
+
+    els = this.s.els
+
+    $("input:checked").prop("checked", false)
+
+    totalTime = 0  
+    allTimeouts = []
+    sequencedTimeouts = (i, obj) ->
+      delay = obj.delay or 1000
+      totalTime += delay
+      to = setTimeout ->
+        obj.fn()
+        return
+      , totalTime
+      allTimeouts.push(to)
+
+    $.fn.extend
+      fauxClick : ->
+        fromTop = @.offset().top + 25
+        fromLeft = @.offset().left + 25
+        click = $( "<div class='faux-click'>" ).appendTo( $("body"))
+        
+        click.css
+          top : fromTop
+          left : fromLeft
+
+        setTimeout ->
+          click.remove()
+          return
+        , 2000
+
+        return this
+
+      typeOut : (str, callback) ->
+        letters = str.split('')
+        $this = $(this)
+
+        setDelay = (i, letter, cb) ->
+          do ->
+            setTimeout ->
+              evtDown = jQuery.Event 'keydown', { which: letter.charCodeAt(0) }
+              evtUp = jQuery.Event 'keyup', { which: letter.charCodeAt(0) }
+              $this.trigger(evtDown)
+              $this.val( $this.val() + letter )
+              $this.trigger(evtUp)
+
+              if cb
+                cb(i, letter)
+
+              if i is letters.length - 1
+                enter = jQuery.Event 'keyup', { which: 13 }
+                $this.trigger(enter)
+                $this.trigger("blur")
+            , 75 * i
+          unless cb
+            cb = $.noop
+
+        for letter, i in letters
+          setDelay(i, letter, callback)
+
+        return this
+
+    actions = 
+      1 : 
+        delay : 400
+        fn : ->
+          els.body.animate
+            scrollTop: $("#pp-controls").offset().top
+      2 : 
+        delay : 400
+        fn : ->
+          $( "#positions-label" ).trigger( "click" ).fauxClick()
+      3 :
+        delay : 400
+        fn : ->
+          $("[for='input-RB']").trigger( "click" ).fauxClick()
+      4 :
+        delay : 400
+        fn : ->
+          $("[for='input-WR']").trigger( "click" ).fauxClick()
+      5 :
+        delay : 400
+        fn : ->
+          $("[for='input-2012']").trigger( "click" ).fauxClick()
+      6 :
+        delay : 400
+        fn : ->
+          $("[for='input-2011']").trigger( "click" ).fauxClick()
+      7 :
+        delay : 400
+        fn : ->
+          $("[for='input-2010']").trigger( "click" ).fauxClick()
+      8 :
+        delay : 400
+        fn : ->
+          els.body.animate
+            scrollTop : $(".control-row").eq(1).offset().top
+      9 :
+        delay : 1000
+        fn : ->
+          $("#x-select").trigger("liszt:open")
+          $("#x_select_chzn").fauxClick()
+      10 :
+        delay : 1000
+        fn : ->
+          $("#x_select_chzn input").typeOut "fantasy position rank", ->
+            $.noop
+      11 :
+        delay : 2000
+        fn : ->
+          $("#y-select").trigger("liszt:open")
+          $("#y_select_chzn").fauxClick()
+      12 :
+        delay : 1000
+        fn : ->
+          $("#y_select_chzn input").typeOut "fantasy points", ->
+            $.noop
+      13 :
+        delay : 2000
+        fn : ->
+          $("#r-select").trigger("liszt:open")
+          $("#r_select_chzn").fauxClick()
+      14 :
+        delay : 1000
+        fn : ->
+          $("#r_select_chzn input").typeOut "total scrimmage yards", ->
+            $.noop
+      15 :
+        delay : 2000
+        fn : ->
+          $("#c-select").trigger("liszt:open")
+          $("#c_select_chzn").fauxClick()
+      16 :
+        delay : 1000
+        fn : ->
+          $("#c_select_chzn input").typeOut "total touchdowns", ->
+            $.noop
+      17 :
+        delay : 2000
+        fn : ->
+          els.body.animate 
+            scrollTop : $("#avg-total-pair-holder").prev("p").offset().top
+      18 :
+        delay : 1000
+        fn : ->
+          $("#season-label").trigger("click").fauxClick()
+      19 :
+        delay : 1000
+        fn : ->
+          els.body.animate
+            scrollTop : $("#render-button").offset().top
+      20 :
+        delay : 2000
+        fn : ->
+          $("#render-button").fauxClick().trigger("click")
+
+    i = 0
+    for key, val of actions
+      console.log key
+      sequencedTimeouts(key, val)
+      i++
+
+
+
+
+  demoStop : ->
+    console.log ("hi")
 
   data : {}
     

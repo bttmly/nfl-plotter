@@ -189,6 +189,9 @@ inline-row(children)
 #avg-total-pair-holder        
 #pos-player-pair-holder
   margin 0 auto 1rem auto
+  font-size 0
+  label
+    font-size 1rem
 
 #avg-total-pair-holder 
   width 50%
@@ -375,3 +378,38 @@ p
   html
 	  font-size 162.5%
 */
+
+.information
+  font-weight bold
+  text-align center
+  span:first-of-type
+    padding-right 2rem
+
+.faux-click
+  width 1rem
+  height 1rem
+  background rgba(0,0,0,.33)
+  box-shadow 0 0 .5rem rgba(255,255,255,.33)
+  border-radius 2rem
+  position absolute
+  transform-origin center center
+  animation faux-click ease-in-out 1s forwards
+  z-index 10000
+
+@keyframes faux-click
+  0%
+    opacity 0
+  5%
+    opacity 1
+    transform scale(1)
+  20%
+    transform scale(.5)
+  40%
+    transform scale(1)
+  80%
+    opacity 1
+    transform scale(1)
+  100%
+    opacity 0
+    transform scale(1.5)
+  
