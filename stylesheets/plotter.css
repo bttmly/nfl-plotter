@@ -392,19 +392,34 @@ body {
   color: #27ae60;
 }
 #scatterplot-wrapper {
-  display: inline-block;
   position: relative;
   margin-left: auto;
   margin-right: auto;
   width: 80%;
-  padding-bottom: 100%;
-  vertical-align: middle;
 }
 #scatterplot-wrapper svg {
-  display: inline-block;
+  position: relative;
+}
+#scatterplot-wrapper svg text {
+  font-size: 0.75rem;
+}
+#scatterplot-wrapper svg path.domain {
+  fill: none;
+  fill-color: none;
+  stroke: #000;
+  stroke-width: 2px;
+}
+#hover-data {
+  cursor: move;
+  display: none;
+  font-size: 0.5rem;
+  font-weight: bold;
   position: absolute;
-  top: 0;
-  left: 0;
+  width: 14rem;
+  padding: 0 1rem;
+  border-radius: 0.25rem;
+  background: rgba(255,255,255,0.75);
+  border: 0.125rem solid rgba(0,0,0,0.25);
 }
 @media screen and (min-width:  37.500em) {
   html {
@@ -502,10 +517,10 @@ p a:hover {
   padding-right: 2rem;
 }
 .faux-click {
-  width: 1rem;
-  height: 1rem;
+  width: 1.25rem;
+  height: 1.25rem;
   background: rgba(0,0,0,0.33);
-  box-shadow: 0 0 0.5rem rgba(255,255,255,0.33);
+  border: 0.125rem solid rgba(255,255,255,0.33);
   border-radius: 2rem;
   position: absolute;
   -webkit-transform-origin: center center;
@@ -513,11 +528,11 @@ p a:hover {
   -ms-transform-origin: center center;
   -o-transform-origin: center center;
   transform-origin: center center;
-  -webkit-animation: faux-click ease-in-out 1s forwards;
-  -moz-animation: faux-click ease-in-out 1s forwards;
-  -ms-animation: faux-click ease-in-out 1s forwards;
-  -o-animation: faux-click ease-in-out 1s forwards;
-  animation: faux-click ease-in-out 1s forwards;
+  -webkit-animation: faux-click ease-in-out 0.75s forwards;
+  -moz-animation: faux-click ease-in-out 0.75s forwards;
+  -ms-animation: faux-click ease-in-out 0.75s forwards;
+  -o-animation: faux-click ease-in-out 0.75s forwards;
+  animation: faux-click ease-in-out 0.75s forwards;
   z-index: 10000;
 }
 @-moz-keyframes faux-click {

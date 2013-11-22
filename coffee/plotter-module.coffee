@@ -51,7 +51,7 @@ window.Plotter =
       datasetURL   : "/data/dataset.08-12.json"
       namesURL     : "/data/names.08-12.json"
       
-      chartPadding : 100
+      chartPadding : 60
       chartHeight  : 0
       chartWidth   : 0
       
@@ -264,6 +264,11 @@ window.Plotter =
     Plotter = this
     data    = Plotter.data
     
+    Plotter.env = do ->
+      if location.hostname is "localhost" then return "development" else return "production"
+
+    @s.els.html.addClass("plotter-#{Plotter.env}")
+
     @s.els.playerPosGroups.hide()
     
     $.getJSON Plotter.s.vals.datasetURL, (json) ->
@@ -481,11 +486,11 @@ window.Plotter =
     
     scales.x = d3.scale.linear()
       .domain( [ scaleVals.x.min, scaleVals.x.max ] )
-      .range( [ chartPadding, chartWidth - chartPadding ] )
+      .range( [ chartPadding, chartWidth - chartPadding*2 ] )
     
     scales.y = d3.scale.linear()
       .domain( [ scaleVals.y.max, scaleVals.y.min ] )
-      .range( [ chartPadding, chartHeight - chartPadding ] )
+      .range( [ chartPadding, chartHeight - chartPadding*2 ] )
     
     # [2, 10] are min, max for dot radius in pixels
     scales.r = d3.scale.linear()
@@ -573,18 +578,18 @@ window.Plotter =
     scatterplot.append("g")
       .attr("class", "axis")
       .attr("id", "xAxis")
-      .attr("transform", "translate(0," + (chartHeight - chartPadding) + ")")
+      .attr("transform", "translate( 0, #{(chartHeight - chartPadding*2)} )")
       .call(xAxis)
     
     scatterplot.append("text")
       .attr("class", "xAxis-label")
-      .attr("transform", "translate(0," + (chartHeight - chartPadding) + ")")
+      .attr("transform", "translate( #{chartPadding}, #{(chartHeight - chartPadding)} )" )
       .text(x)
     
     scatterplot.append("g")
       .attr("class", "axis")
       .attr("id", "yAxis")
-      .attr("transform", "translate(" + chartPadding + ",0)")
+      .attr("transform", "translate( #{chartPadding}, 0 )")
       .call(yAxis)
     
     scatterplot.append("text")
@@ -608,7 +613,21 @@ window.Plotter =
     svgDomElement = @s.els.chartWrapper.find("svg")[0]
     svgDomElement.setAttribute('preserveAspectRatio', 'xMinYMin meet')
     svgDomElement.setAttribute("viewBox", "0 0 800 400")
-  
+    
+    # fix height bug.
+    $plot = @s.els.chartWrapper.find("svg").eq(0)
+
+    # viewBox baseVal
+    ratio = $plot.prop("viewBox").baseVal.height / $plot.prop("viewBox").baseVal.width
+    console.log "ratio: #{ratio}"
+    console.log "parent"
+    console.log $plot.parent()
+    $plot.parent().height(ratio * $plot.parent().width() )
+
+    @s.els.$log.fadeIn().css
+      top : $plot.offset().top
+      left : $plot.offset().left + $plot.width() - @s.els.$log.width()
+
   highlightModeSwitch : ->
     Plotter = this
     highlightModeUpdate = @highlightModeUpdate
@@ -752,14 +771,10 @@ window.Plotter =
     (parseInt( @s.els.$log.css( "left" ), 10) - event.originalEvent.clientX ) + ',' + (parseInt(@s.els.$log.css("top"),10) - event.originalEvent.clientY ) )
 
   hoverLogDragOver : (event) -> 
-    console.log "drag over"
     event.preventDefault()
     return false
 
   hoverLogDrop : (event) -> 
-    console.log (event.originalEvent.clientX + parseInt(offset[0],10)) + 'px'
-    console.log (event.originalEvent.clientY + parseInt(offset[1],10)) + 'px'
-
     offset = event.dataTransfer.getData("text/plain").split(',')
     @s.els.$log.css("left", (event.originalEvent.clientX + parseInt(offset[0],10)) + 'px' )
     @s.els.$log.css("top", (event.originalEvent.clientY + parseInt(offset[1],10)) + 'px' )
@@ -771,17 +786,19 @@ window.Plotter =
     els = this.s.els
 
     $("input:checked").prop("checked", false)
+    $("select.variable").each ->
+      $(this).find("option:checked").prop("checked", false).end().trigger("liszt:updated")
 
     totalTime = 0  
-    allTimeouts = []
-    sequencedTimeouts = (i, obj) ->
+    @allTimeouts = []
+    sequencedTimeouts = (i, obj) =>
       delay = obj.delay or 1000
       totalTime += delay
       to = setTimeout ->
         obj.fn()
         return
       , totalTime
-      allTimeouts.push(to)
+      @allTimeouts.push(to)
 
     $.fn.extend
       fauxClick : ->
@@ -831,36 +848,36 @@ window.Plotter =
 
     actions = 
       1 : 
-        delay : 400
+        delay : 750
         fn : ->
           els.body.animate
             scrollTop: $("#pp-controls").offset().top
       2 : 
-        delay : 400
+        delay : 750
         fn : ->
           $( "#positions-label" ).trigger( "click" ).fauxClick()
       3 :
-        delay : 400
+        delay : 750
         fn : ->
           $("[for='input-RB']").trigger( "click" ).fauxClick()
       4 :
-        delay : 400
+        delay : 750
         fn : ->
           $("[for='input-WR']").trigger( "click" ).fauxClick()
       5 :
-        delay : 400
+        delay : 750
         fn : ->
           $("[for='input-2012']").trigger( "click" ).fauxClick()
       6 :
-        delay : 400
+        delay : 750
         fn : ->
           $("[for='input-2011']").trigger( "click" ).fauxClick()
       7 :
-        delay : 400
+        delay : 750
         fn : ->
           $("[for='input-2010']").trigger( "click" ).fauxClick()
       8 :
-        delay : 400
+        delay : 750
         fn : ->
           els.body.animate
             scrollTop : $(".control-row").eq(1).offset().top
@@ -905,23 +922,28 @@ window.Plotter =
           $("#c_select_chzn input").typeOut "total touchdowns", ->
             $.noop
       17 :
-        delay : 2000
+        delay : 1500
         fn : ->
           els.body.animate 
             scrollTop : $("#avg-total-pair-holder").prev("p").offset().top
       18 :
-        delay : 1000
+        delay : 750
         fn : ->
           $("#season-label").trigger("click").fauxClick()
       19 :
-        delay : 1000
+        delay : 750
         fn : ->
           els.body.animate
             scrollTop : $("#render-button").offset().top
       20 :
-        delay : 2000
+        delay : 750
         fn : ->
           $("#render-button").fauxClick().trigger("click")
+      21 :
+        delay : 500
+        fn : ->
+          els.body.animate
+            scrollTop : $("#d3-scatterplot").offset().top
 
     i = 0
     for key, val of actions
@@ -933,7 +955,9 @@ window.Plotter =
 
 
   demoStop : ->
-    console.log ("hi")
+    for timeout in @allTimeouts
+      clearTimeout(timeout)
+
 
   data : {}
     
@@ -960,3 +984,4 @@ window.Plotter =
       arr[l - (n + 1)]
 
 window.Plotter.init()
+if $("html").is(".plotter-development") then Plotter.demoStart()

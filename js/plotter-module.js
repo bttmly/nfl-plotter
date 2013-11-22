@@ -55,7 +55,7 @@ window.Plotter = {
       vals: {
         datasetURL: "/data/dataset.08-12.json",
         namesURL: "/data/names.08-12.json",
-        chartPadding: 100,
+        chartPadding: 60,
         chartHeight: 0,
         chartWidth: 0,
         selections: {},
@@ -273,6 +273,14 @@ window.Plotter = {
     var Plotter, data, selectHTML;
     Plotter = this;
     data = Plotter.data;
+    Plotter.env = (function() {
+      if (location.hostname === "localhost") {
+        return "development";
+      } else {
+        return "production";
+      }
+    })();
+    this.s.els.html.addClass("plotter-" + Plotter.env);
     this.s.els.playerPosGroups.hide();
     $.getJSON(Plotter.s.vals.datasetURL, function(json) {
       return data.fullSet = json;
@@ -523,14 +531,14 @@ window.Plotter = {
         scaleVals.c.min = datum[v.cAxis];
       }
     }
-    scales.x = d3.scale.linear().domain([scaleVals.x.min, scaleVals.x.max]).range([chartPadding, chartWidth - chartPadding]);
-    scales.y = d3.scale.linear().domain([scaleVals.y.max, scaleVals.y.min]).range([chartPadding, chartHeight - chartPadding]);
+    scales.x = d3.scale.linear().domain([scaleVals.x.min, scaleVals.x.max]).range([chartPadding, chartWidth - chartPadding * 2]);
+    scales.y = d3.scale.linear().domain([scaleVals.y.max, scaleVals.y.min]).range([chartPadding, chartHeight - chartPadding * 2]);
     scales.r = d3.scale.linear().domain([scaleVals.r.min, scaleVals.r.max]).range([2, 10]);
     scales.c = d3.scale.linear().domain([scaleVals.c.min, scaleVals.c.max]).range([-0.15, 0.15]);
     return scales;
   },
   drawChart: function(dataset, selected, scales) {
-    var c, chartHeight, chartPadding, chartWidth, dot, pieces, posColors, r, scatterplot, scatterplotPoints, svgDomElement, x, xAxis, y, yAxis, _i, _len, _ref, _ref1;
+    var $plot, c, chartHeight, chartPadding, chartWidth, dot, pieces, posColors, r, ratio, scatterplot, scatterplotPoints, svgDomElement, x, xAxis, y, yAxis, _i, _len, _ref, _ref1;
     chartHeight = this.s.vals.chartHeight;
     chartWidth = this.s.vals.chartWidth;
     chartPadding = this.s.vals.chartPadding;
@@ -579,9 +587,9 @@ window.Plotter = {
     });
     xAxis = d3.svg.axis().scale(scales.x).orient("bottom");
     yAxis = d3.svg.axis().scale(scales.y).orient("left");
-    scatterplot.append("g").attr("class", "axis").attr("id", "xAxis").attr("transform", "translate(0," + (chartHeight - chartPadding) + ")").call(xAxis);
-    scatterplot.append("text").attr("class", "xAxis-label").attr("transform", "translate(0," + (chartHeight - chartPadding) + ")").text(x);
-    scatterplot.append("g").attr("class", "axis").attr("id", "yAxis").attr("transform", "translate(" + chartPadding + ",0)").call(yAxis);
+    scatterplot.append("g").attr("class", "axis").attr("id", "xAxis").attr("transform", "translate( 0, " + (chartHeight - chartPadding * 2) + " )").call(xAxis);
+    scatterplot.append("text").attr("class", "xAxis-label").attr("transform", "translate( " + chartPadding + ", " + (chartHeight - chartPadding) + " )").text(x);
+    scatterplot.append("g").attr("class", "axis").attr("id", "yAxis").attr("transform", "translate( " + chartPadding + ", 0 )").call(yAxis);
     scatterplot.append("text").attr("class", "yAxis-label").attr("transform", "translate(" + chartPadding + ",0) rotate(-90)").text(y);
     this.s.els.chart = this.s.els.chartWrapper.find("svg");
     this.s.els.dots = this.s.els.chart.find("circle");
@@ -595,7 +603,17 @@ window.Plotter = {
     }
     svgDomElement = this.s.els.chartWrapper.find("svg")[0];
     svgDomElement.setAttribute('preserveAspectRatio', 'xMinYMin meet');
-    return svgDomElement.setAttribute("viewBox", "0 0 800 400");
+    svgDomElement.setAttribute("viewBox", "0 0 800 400");
+    $plot = this.s.els.chartWrapper.find("svg").eq(0);
+    ratio = $plot.prop("viewBox").baseVal.height / $plot.prop("viewBox").baseVal.width;
+    console.log("ratio: " + ratio);
+    console.log("parent");
+    console.log($plot.parent());
+    $plot.parent().height(ratio * $plot.parent().width());
+    return this.s.els.$log.fadeIn().css({
+      top: $plot.offset().top,
+      left: $plot.offset().left + $plot.width() - this.s.els.$log.width()
+    });
   },
   highlightModeSwitch: function() {
     var Plotter, highlightModeUpdate, highlighted, key, value, _results;
@@ -724,14 +742,11 @@ window.Plotter = {
     return event.dataTransfer.setData("text/plain", (parseInt(this.s.els.$log.css("left"), 10) - event.originalEvent.clientX) + ',' + (parseInt(this.s.els.$log.css("top"), 10) - event.originalEvent.clientY));
   },
   hoverLogDragOver: function(event) {
-    console.log("drag over");
     event.preventDefault();
     return false;
   },
   hoverLogDrop: function(event) {
     var offset;
-    console.log((event.originalEvent.clientX + parseInt(offset[0], 10)) + 'px');
-    console.log((event.originalEvent.clientY + parseInt(offset[1], 10)) + 'px');
     offset = event.dataTransfer.getData("text/plain").split(',');
     this.s.els.$log.css("left", (event.originalEvent.clientX + parseInt(offset[0], 10)) + 'px');
     this.s.els.$log.css("top", (event.originalEvent.clientY + parseInt(offset[1], 10)) + 'px');
@@ -739,11 +754,15 @@ window.Plotter = {
     return false;
   },
   demoStart: function() {
-    var actions, allTimeouts, els, i, key, sequencedTimeouts, totalTime, val, _results;
+    var actions, els, i, key, sequencedTimeouts, totalTime, val, _results,
+      _this = this;
     els = this.s.els;
     $("input:checked").prop("checked", false);
+    $("select.variable").each(function() {
+      return $(this).find("option:checked").prop("checked", false).end().trigger("liszt:updated");
+    });
     totalTime = 0;
-    allTimeouts = [];
+    this.allTimeouts = [];
     sequencedTimeouts = function(i, obj) {
       var delay, to;
       delay = obj.delay || 1000;
@@ -751,7 +770,7 @@ window.Plotter = {
       to = setTimeout(function() {
         obj.fn();
       }, totalTime);
-      return allTimeouts.push(to);
+      return _this.allTimeouts.push(to);
     };
     $.fn.extend({
       fauxClick: function() {
@@ -810,7 +829,7 @@ window.Plotter = {
     });
     actions = {
       1: {
-        delay: 400,
+        delay: 750,
         fn: function() {
           return els.body.animate({
             scrollTop: $("#pp-controls").offset().top
@@ -818,43 +837,43 @@ window.Plotter = {
         }
       },
       2: {
-        delay: 400,
+        delay: 750,
         fn: function() {
           return $("#positions-label").trigger("click").fauxClick();
         }
       },
       3: {
-        delay: 400,
+        delay: 750,
         fn: function() {
           return $("[for='input-RB']").trigger("click").fauxClick();
         }
       },
       4: {
-        delay: 400,
+        delay: 750,
         fn: function() {
           return $("[for='input-WR']").trigger("click").fauxClick();
         }
       },
       5: {
-        delay: 400,
+        delay: 750,
         fn: function() {
           return $("[for='input-2012']").trigger("click").fauxClick();
         }
       },
       6: {
-        delay: 400,
+        delay: 750,
         fn: function() {
           return $("[for='input-2011']").trigger("click").fauxClick();
         }
       },
       7: {
-        delay: 400,
+        delay: 750,
         fn: function() {
           return $("[for='input-2010']").trigger("click").fauxClick();
         }
       },
       8: {
-        delay: 400,
+        delay: 750,
         fn: function() {
           return els.body.animate({
             scrollTop: $(".control-row").eq(1).offset().top
@@ -922,7 +941,7 @@ window.Plotter = {
         }
       },
       17: {
-        delay: 2000,
+        delay: 1500,
         fn: function() {
           return els.body.animate({
             scrollTop: $("#avg-total-pair-holder").prev("p").offset().top
@@ -930,13 +949,13 @@ window.Plotter = {
         }
       },
       18: {
-        delay: 1000,
+        delay: 750,
         fn: function() {
           return $("#season-label").trigger("click").fauxClick();
         }
       },
       19: {
-        delay: 1000,
+        delay: 750,
         fn: function() {
           return els.body.animate({
             scrollTop: $("#render-button").offset().top
@@ -944,9 +963,17 @@ window.Plotter = {
         }
       },
       20: {
-        delay: 2000,
+        delay: 750,
         fn: function() {
           return $("#render-button").fauxClick().trigger("click");
+        }
+      },
+      21: {
+        delay: 500,
+        fn: function() {
+          return els.body.animate({
+            scrollTop: $("#d3-scatterplot").offset().top
+          });
         }
       }
     };
@@ -961,7 +988,14 @@ window.Plotter = {
     return _results;
   },
   demoStop: function() {
-    return console.log("hi");
+    var timeout, _i, _len, _ref, _results;
+    _ref = this.allTimeouts;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      timeout = _ref[_i];
+      _results.push(clearTimeout(timeout));
+    }
+    return _results;
   },
   data: {},
   utils: {
@@ -999,3 +1033,7 @@ window.Plotter = {
 };
 
 window.Plotter.init();
+
+if ($("html").is(".plotter-development")) {
+  Plotter.demoStart();
+}
