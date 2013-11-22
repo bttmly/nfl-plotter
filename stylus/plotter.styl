@@ -19,6 +19,7 @@ html
   font-size 100%
   line-height 1.5
   color sortaDark
+  margin 0
   &.wf-active
   &.wf-inactive
     color sortaDark
@@ -34,9 +35,11 @@ html
   margin-right auto
 
 body
-  font-weight 300
-  margin 2rem 0
-  
+  margin 0
+  font-weight 300  
+
+input
+  font-family inherit
 
 // Styles for when highlight mode is active
 .plotter-highlight-mode 
@@ -301,6 +304,23 @@ lightenAmount = 15%
       fill-color none
       stroke black
       stroke-width 2px
+  circle
+    cursor pointer
+    transform-origin center center
+    transition all .2s ease
+    &:hover
+      transform scale(1.5)
+      stroke #666
+      stroke-width 1px
+
+.plotter-highlight-mode circle:not(.highlighted-dot)
+  cursor default
+  transform scale(.5)
+  pointer-events none
+  &:hover
+    transform scale(.5)
+    stroke-width 0
+
 
 #hover-data
   cursor move

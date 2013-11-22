@@ -243,7 +243,7 @@ window.Plotter =
       plotter.circleCursorIn "##{this.id}"
     
     $el.body.on "mouseleave", "#scatterplot-wrapper circle", ->
-      plotter.circleCursorOut()
+      plotter.circleCursorOut $(this)
 
     $el.body.on "dragstart", "#hover-data", (event) ->
       plotter.hoverLogDragStart(event, this)
@@ -256,7 +256,7 @@ window.Plotter =
 
     $el.body.on "click", "#show-me", (event) ->
       event.preventDefault()
-      plotter.demoStart()
+      plotter.demoStart(false)
 
 
   pageSetup : (s) ->
@@ -452,7 +452,7 @@ window.Plotter =
     scales = {}
     
     chartPadding = @s.vals.chartPadding
-    chartWidth = @s.vals.chartWidth = @s.els.chartWrapper.width()
+    chartWidth = @s.vals.chartWidth = @s.els.chartWrapper.width() * .9
     chartHeight = @s.vals.chartHeight = chartWidth * 0.5
       
     scaleVals = 
@@ -486,11 +486,12 @@ window.Plotter =
     
     scales.x = d3.scale.linear()
       .domain( [ scaleVals.x.min, scaleVals.x.max ] )
-      .range( [ chartPadding, chartWidth - chartPadding*2 ] )
+      .range( [ chartPadding, chartWidth - chartPadding*3 ] )
     
     scales.y = d3.scale.linear()
       .domain( [ scaleVals.y.max, scaleVals.y.min ] )
-      .range( [ chartPadding, chartHeight - chartPadding*2 ] )
+      .range( [ chartPadding / 4, chartHeight - chartPadding*2 ])
+      # .range( [ chartPadding, chartHeight - chartPadding*2 ] )
     
     # [2, 10] are min, max for dot radius in pixels
     scales.r = d3.scale.linear()
@@ -527,9 +528,13 @@ window.Plotter =
       .append('svg')
       .attr('id', 'd3-scatterplot')
     
+    dotHolder = d3.select('#d3-scatterplot')
+      .append('g')
+      .attr('id', 'dot-holder')
+
     # here's where the magic happens...
     
-    scatterplotPoints = scatterplot.selectAll("circle")
+    scatterplotPoints = dotHolder.selectAll("circle")
       .data(dataset)
       .enter()
       .append("circle")
@@ -560,7 +565,7 @@ window.Plotter =
           return base
       ).attr("id", (d) ->
         id = ""
-        id += d.Name.split(" ").join("-") + "_"
+        id += d.Name.split(" ").join("-").replace(/\./g, "").replace(/'/g, "") + "_"
         id += d.Season + "_"
         id += d.FantPos
         return id
@@ -578,12 +583,12 @@ window.Plotter =
     scatterplot.append("g")
       .attr("class", "axis")
       .attr("id", "xAxis")
-      .attr("transform", "translate( 0, #{(chartHeight - chartPadding*2)} )")
+      .attr("transform", "translate( 0, #{chartHeight - chartPadding * 2} )")
       .call(xAxis)
     
     scatterplot.append("text")
       .attr("class", "xAxis-label")
-      .attr("transform", "translate( #{chartPadding}, #{(chartHeight - chartPadding)} )" )
+      .attr("transform", "translate( #{chartPadding}, #{chartHeight + 30 - chartPadding * 2} )" )
       .text(x)
     
     scatterplot.append("g")
@@ -594,7 +599,7 @@ window.Plotter =
     
     scatterplot.append("text")
       .attr("class", "yAxis-label")
-      .attr("transform", "translate(" + chartPadding + ",0) rotate(-90)")
+      .attr("transform", "translate( #{chartPadding}, 0) rotate(-90)")
       .text(y)
       
     
@@ -616,12 +621,7 @@ window.Plotter =
     
     # fix height bug.
     $plot = @s.els.chartWrapper.find("svg").eq(0)
-
-    # viewBox baseVal
     ratio = $plot.prop("viewBox").baseVal.height / $plot.prop("viewBox").baseVal.width
-    console.log "ratio: #{ratio}"
-    console.log "parent"
-    console.log $plot.parent()
     $plot.parent().height(ratio * $plot.parent().width() )
 
     @s.els.$log.fadeIn().css
@@ -704,7 +704,7 @@ window.Plotter =
             .filter("[data-player-position='#{position}']")
             .attr("class", "highlighted-dot")
             .each ->
-              $(@).before $("#xAxis")
+              $(@).appendTo $("#dot-holder")
 
     # if we get here, there is/are value(s) in only one of these two arrays, so check each
     else
@@ -715,7 +715,7 @@ window.Plotter =
             .attr("class", "highlighted-dot")
             # probably ditch this next expression
             .each ->
-              $(@).before $("#xAxis")
+              $(@).appendTo $("#dot-holder")
 
       else if highlighted.positions.length
         for position in highlighted.positions
@@ -724,23 +724,23 @@ window.Plotter =
             .attr("class", "highlighted-dot")
             # probably ditch this next expression
             .each ->
-              $(@).before $("#xAxis")
+              $(@).appendTo $("#dot-holder")
   
   playerPosSwitch : (val) ->
     
     toShow = @s.els.playerPosGroups.filter("[data-input-group='#{val}']").show()
     toShow.siblings("[data-input-group]").hide()
     
-    # toShow = @s.els.playerPosGroups.filter("[data-input-group='#{val}']")
-    # toHide = toShow.siblings("[data-input-group]")
-    
-    # if toHide.is ":visible"
-    #  toHide.fadeOut 600, ->
-    #    toShow.fadeIn 600
-    # else
-    #   toShow.fadeIn 600
-    
   circleCursorIn : (selector) ->
+
+    # prevents showing data if highlight mode is on but data point is not highlighted.
+    if @s.els.html.is(".plotter-highlight-mode")
+      classes = $(selector).attr("class")?.split(" ") or []
+      if classes.indexOf("highlighted-dot") is -1
+        return
+
+    $(selector).appendTo $("#dot-holder")
+
     _log selector
     _log d3.select(selector)
     props = d3.select(selector)[0][0].__data__
@@ -758,15 +758,16 @@ window.Plotter =
     @s.els.$rVal.html props[v.rAxis]
     @s.els.$cVal.html props[v.cAxis]
     
-  circleCursorOut : ->
+  circleCursorOut : (el) ->
     @s.els.$allHoverSpans.html "&nbsp;"
+    el.prependTo $("#dot-holder")
   
   clearSelectedPlayers : ->
     @s.els.selectedPlayersLi().remove()
   
   # these three drag & drop functions appropriated from http://stackoverflow.com/a/6239882/2942909
   hoverLogDragStart : (event) ->
-    console.log "drag start"
+
     event.dataTransfer.setData("text/plain",
     (parseInt( @s.els.$log.css( "left" ), 10) - event.originalEvent.clientX ) + ',' + (parseInt(@s.els.$log.css("top"),10) - event.originalEvent.clientY ) )
 
@@ -781,7 +782,7 @@ window.Plotter =
     event.preventDefault()
     return false
 
-  demoStart : ->
+  demoStart : (dev) ->
 
     els = this.s.els
 
@@ -887,7 +888,7 @@ window.Plotter =
           $("#x-select").trigger("liszt:open")
           $("#x_select_chzn").fauxClick()
       10 :
-        delay : 1000
+        delay : 500
         fn : ->
           $("#x_select_chzn input").typeOut "fantasy position rank", ->
             $.noop
@@ -897,7 +898,7 @@ window.Plotter =
           $("#y-select").trigger("liszt:open")
           $("#y_select_chzn").fauxClick()
       12 :
-        delay : 1000
+        delay : 500
         fn : ->
           $("#y_select_chzn input").typeOut "fantasy points", ->
             $.noop
@@ -907,7 +908,7 @@ window.Plotter =
           $("#r-select").trigger("liszt:open")
           $("#r_select_chzn").fauxClick()
       14 :
-        delay : 1000
+        delay : 500
         fn : ->
           $("#r_select_chzn input").typeOut "total scrimmage yards", ->
             $.noop
@@ -917,7 +918,7 @@ window.Plotter =
           $("#c-select").trigger("liszt:open")
           $("#c_select_chzn").fauxClick()
       16 :
-        delay : 1000
+        delay : 500
         fn : ->
           $("#c_select_chzn input").typeOut "total touchdowns", ->
             $.noop
@@ -945,11 +946,16 @@ window.Plotter =
           els.body.animate
             scrollTop : $("#d3-scatterplot").offset().top
 
+    if dev
+      for key of actions
+        actions[key].delay = 100
+
     i = 0
     for key, val of actions
       console.log key
       sequencedTimeouts(key, val)
       i++
+
 
 
 
@@ -984,4 +990,4 @@ window.Plotter =
       arr[l - (n + 1)]
 
 window.Plotter.init()
-if $("html").is(".plotter-development") then Plotter.demoStart()
+# if $("html").is(".plotter-development") then Plotter.demoStart(false)

@@ -253,7 +253,7 @@ window.Plotter = {
       return plotter.circleCursorIn("#" + this.id);
     });
     $el.body.on("mouseleave", "#scatterplot-wrapper circle", function() {
-      return plotter.circleCursorOut();
+      return plotter.circleCursorOut($(this));
     });
     $el.body.on("dragstart", "#hover-data", function(event) {
       return plotter.hoverLogDragStart(event, this);
@@ -266,7 +266,7 @@ window.Plotter = {
     });
     return $el.body.on("click", "#show-me", function(event) {
       event.preventDefault();
-      return plotter.demoStart();
+      return plotter.demoStart(false);
     });
   },
   pageSetup: function(s) {
@@ -483,7 +483,7 @@ window.Plotter = {
     _log(data);
     scales = {};
     chartPadding = this.s.vals.chartPadding;
-    chartWidth = this.s.vals.chartWidth = this.s.els.chartWrapper.width();
+    chartWidth = this.s.vals.chartWidth = this.s.els.chartWrapper.width() * .9;
     chartHeight = this.s.vals.chartHeight = chartWidth * 0.5;
     scaleVals = {
       x: {
@@ -531,14 +531,14 @@ window.Plotter = {
         scaleVals.c.min = datum[v.cAxis];
       }
     }
-    scales.x = d3.scale.linear().domain([scaleVals.x.min, scaleVals.x.max]).range([chartPadding, chartWidth - chartPadding * 2]);
-    scales.y = d3.scale.linear().domain([scaleVals.y.max, scaleVals.y.min]).range([chartPadding, chartHeight - chartPadding * 2]);
+    scales.x = d3.scale.linear().domain([scaleVals.x.min, scaleVals.x.max]).range([chartPadding, chartWidth - chartPadding * 3]);
+    scales.y = d3.scale.linear().domain([scaleVals.y.max, scaleVals.y.min]).range([chartPadding / 4, chartHeight - chartPadding * 2]);
     scales.r = d3.scale.linear().domain([scaleVals.r.min, scaleVals.r.max]).range([2, 10]);
     scales.c = d3.scale.linear().domain([scaleVals.c.min, scaleVals.c.max]).range([-0.15, 0.15]);
     return scales;
   },
   drawChart: function(dataset, selected, scales) {
-    var $plot, c, chartHeight, chartPadding, chartWidth, dot, pieces, posColors, r, ratio, scatterplot, scatterplotPoints, svgDomElement, x, xAxis, y, yAxis, _i, _len, _ref, _ref1;
+    var $plot, c, chartHeight, chartPadding, chartWidth, dot, dotHolder, pieces, posColors, r, ratio, scatterplot, scatterplotPoints, svgDomElement, x, xAxis, y, yAxis, _i, _len, _ref, _ref1;
     chartHeight = this.s.vals.chartHeight;
     chartWidth = this.s.vals.chartWidth;
     chartPadding = this.s.vals.chartPadding;
@@ -555,7 +555,8 @@ window.Plotter = {
     c = selected.variables.cAxis;
     r = selected.variables.rAxis;
     scatterplot = d3.select('#scatterplot-wrapper').append('svg').attr('id', 'd3-scatterplot');
-    scatterplotPoints = scatterplot.selectAll("circle").data(dataset).enter().append("circle").attr("cx", function(d) {
+    dotHolder = d3.select('#d3-scatterplot').append('g').attr('id', 'dot-holder');
+    scatterplotPoints = dotHolder.selectAll("circle").data(dataset).enter().append("circle").attr("cx", function(d) {
       return scales.x(d[x]);
     }).attr("cy", function(d) {
       return scales.y(d[y]);
@@ -580,7 +581,7 @@ window.Plotter = {
     }).attr("id", function(d) {
       var id;
       id = "";
-      id += d.Name.split(" ").join("-") + "_";
+      id += d.Name.split(" ").join("-").replace(/\./g, "").replace(/'/g, "") + "_";
       id += d.Season + "_";
       id += d.FantPos;
       return id;
@@ -588,9 +589,9 @@ window.Plotter = {
     xAxis = d3.svg.axis().scale(scales.x).orient("bottom");
     yAxis = d3.svg.axis().scale(scales.y).orient("left");
     scatterplot.append("g").attr("class", "axis").attr("id", "xAxis").attr("transform", "translate( 0, " + (chartHeight - chartPadding * 2) + " )").call(xAxis);
-    scatterplot.append("text").attr("class", "xAxis-label").attr("transform", "translate( " + chartPadding + ", " + (chartHeight - chartPadding) + " )").text(x);
+    scatterplot.append("text").attr("class", "xAxis-label").attr("transform", "translate( " + chartPadding + ", " + (chartHeight + 30 - chartPadding * 2) + " )").text(x);
     scatterplot.append("g").attr("class", "axis").attr("id", "yAxis").attr("transform", "translate( " + chartPadding + ", 0 )").call(yAxis);
-    scatterplot.append("text").attr("class", "yAxis-label").attr("transform", "translate(" + chartPadding + ",0) rotate(-90)").text(y);
+    scatterplot.append("text").attr("class", "yAxis-label").attr("transform", "translate( " + chartPadding + ", 0) rotate(-90)").text(y);
     this.s.els.chart = this.s.els.chartWrapper.find("svg");
     this.s.els.dots = this.s.els.chart.find("circle");
     _ref1 = this.s.els.dots;
@@ -606,9 +607,6 @@ window.Plotter = {
     svgDomElement.setAttribute("viewBox", "0 0 800 400");
     $plot = this.s.els.chartWrapper.find("svg").eq(0);
     ratio = $plot.prop("viewBox").baseVal.height / $plot.prop("viewBox").baseVal.width;
-    console.log("ratio: " + ratio);
-    console.log("parent");
-    console.log($plot.parent());
     $plot.parent().height(ratio * $plot.parent().width());
     return this.s.els.$log.fadeIn().css({
       top: $plot.offset().top,
@@ -679,7 +677,7 @@ window.Plotter = {
           for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
             position = _ref1[_j];
             _results1.push(Plotter.s.els.dots.filter("[data-player-season='" + season + "']").filter("[data-player-position='" + position + "']").attr("class", "highlighted-dot").each(function() {
-              return $(this).before($("#xAxis"));
+              return $(this).appendTo($("#dot-holder"));
             }));
           }
           return _results1;
@@ -693,7 +691,7 @@ window.Plotter = {
         for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
           season = _ref1[_j];
           _results1.push(Plotter.s.els.dots.filter("[data-player-season='" + season + "']").attr("class", "highlighted-dot").each(function() {
-            return $(this).before($("#xAxis"));
+            return $(this).appendTo($("#dot-holder"));
           }));
         }
         return _results1;
@@ -703,7 +701,7 @@ window.Plotter = {
         for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
           position = _ref2[_k];
           _results2.push(Plotter.s.els.dots.filter("[data-player-position='" + position + "']").attr("class", "highlighted-dot").each(function() {
-            return $(this).before($("#xAxis"));
+            return $(this).appendTo($("#dot-holder"));
           }));
         }
         return _results2;
@@ -716,7 +714,14 @@ window.Plotter = {
     return toShow.siblings("[data-input-group]").hide();
   },
   circleCursorIn: function(selector) {
-    var props, v;
+    var classes, props, v, _ref;
+    if (this.s.els.html.is(".plotter-highlight-mode")) {
+      classes = ((_ref = $(selector).attr("class")) != null ? _ref.split(" ") : void 0) || [];
+      if (classes.indexOf("highlighted-dot") === -1) {
+        return;
+      }
+    }
+    $(selector).appendTo($("#dot-holder"));
     _log(selector);
     _log(d3.select(selector));
     props = d3.select(selector)[0][0].__data__;
@@ -731,14 +736,14 @@ window.Plotter = {
     this.s.els.$rVal.html(props[v.rAxis]);
     return this.s.els.$cVal.html(props[v.cAxis]);
   },
-  circleCursorOut: function() {
-    return this.s.els.$allHoverSpans.html("&nbsp;");
+  circleCursorOut: function(el) {
+    this.s.els.$allHoverSpans.html("&nbsp;");
+    return el.prependTo($("#dot-holder"));
   },
   clearSelectedPlayers: function() {
     return this.s.els.selectedPlayersLi().remove();
   },
   hoverLogDragStart: function(event) {
-    console.log("drag start");
     return event.dataTransfer.setData("text/plain", (parseInt(this.s.els.$log.css("left"), 10) - event.originalEvent.clientX) + ',' + (parseInt(this.s.els.$log.css("top"), 10) - event.originalEvent.clientY));
   },
   hoverLogDragOver: function(event) {
@@ -753,7 +758,7 @@ window.Plotter = {
     event.preventDefault();
     return false;
   },
-  demoStart: function() {
+  demoStart: function(dev) {
     var actions, els, i, key, sequencedTimeouts, totalTime, val, _results,
       _this = this;
     els = this.s.els;
@@ -888,7 +893,7 @@ window.Plotter = {
         }
       },
       10: {
-        delay: 1000,
+        delay: 500,
         fn: function() {
           return $("#x_select_chzn input").typeOut("fantasy position rank", function() {
             return $.noop;
@@ -903,7 +908,7 @@ window.Plotter = {
         }
       },
       12: {
-        delay: 1000,
+        delay: 500,
         fn: function() {
           return $("#y_select_chzn input").typeOut("fantasy points", function() {
             return $.noop;
@@ -918,7 +923,7 @@ window.Plotter = {
         }
       },
       14: {
-        delay: 1000,
+        delay: 500,
         fn: function() {
           return $("#r_select_chzn input").typeOut("total scrimmage yards", function() {
             return $.noop;
@@ -933,7 +938,7 @@ window.Plotter = {
         }
       },
       16: {
-        delay: 1000,
+        delay: 500,
         fn: function() {
           return $("#c_select_chzn input").typeOut("total touchdowns", function() {
             return $.noop;
@@ -977,6 +982,11 @@ window.Plotter = {
         }
       }
     };
+    if (dev) {
+      for (key in actions) {
+        actions[key].delay = 100;
+      }
+    }
     i = 0;
     _results = [];
     for (key in actions) {
@@ -1033,7 +1043,3 @@ window.Plotter = {
 };
 
 window.Plotter.init();
-
-if ($("html").is(".plotter-development")) {
-  Plotter.demoStart();
-}

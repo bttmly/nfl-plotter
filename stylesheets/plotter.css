@@ -12,6 +12,7 @@ html {
   font-size: 100%;
   line-height: 1.5;
   color: #34495e;
+  margin: 0;
 }
 html.wf-active,
 html.wf-inactive {
@@ -28,8 +29,11 @@ html.wf-inactive {
   margin-right: auto;
 }
 body {
+  margin: 0;
   font-weight: 300;
-  margin: 2rem 0;
+}
+input {
+  font-family: inherit;
 }
 .plotter-highlight-mode body {
   background: #eee;
@@ -408,6 +412,45 @@ body {
   fill-color: none;
   stroke: #000;
   stroke-width: 2px;
+}
+#scatterplot-wrapper circle {
+  cursor: pointer;
+  -webkit-transform-origin: center center;
+  -moz-transform-origin: center center;
+  -ms-transform-origin: center center;
+  -o-transform-origin: center center;
+  transform-origin: center center;
+  -webkit-transition: all 0.2s ease;
+  -moz-transition: all 0.2s ease;
+  -ms-transition: all 0.2s ease;
+  -o-transition: all 0.2s ease;
+  transition: all 0.2s ease;
+}
+#scatterplot-wrapper circle:hover {
+  -webkit-transform: scale(1.5);
+  -moz-transform: scale(1.5);
+  -ms-transform: scale(1.5);
+  -o-transform: scale(1.5);
+  transform: scale(1.5);
+  stroke: #666;
+  stroke-width: 1px;
+}
+.plotter-highlight-mode circle:not(.highlighted-dot) {
+  cursor: default;
+  -webkit-transform: scale(0.5);
+  -moz-transform: scale(0.5);
+  -ms-transform: scale(0.5);
+  -o-transform: scale(0.5);
+  transform: scale(0.5);
+  pointer-events: none;
+}
+.plotter-highlight-mode circle:not(.highlighted-dot):hover {
+  -webkit-transform: scale(0.5);
+  -moz-transform: scale(0.5);
+  -ms-transform: scale(0.5);
+  -o-transform: scale(0.5);
+  transform: scale(0.5);
+  stroke-width: 0;
 }
 #hover-data {
   cursor: move;
