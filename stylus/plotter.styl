@@ -41,6 +41,142 @@ body
 input
   font-family inherit
 
+.btn
+  font-family inherit
+  display inline-block
+  margin-bottom .25em .25em 0 0
+  // font-weight 300
+  font-size 1rem
+  text-align center
+  vertical-align middle
+  cursor pointer
+  background-image none
+  background #ccc
+  white-space nowrap
+  padding .5em 1em
+  border none
+  border-radius .25rem
+  color white
+  &.btn-large
+    font-size 1.25rem
+    padding 1em 2em
+  &.btn-small
+    font-size .75rem
+  &:hover
+  &:focus 
+    text-decoration: none
+  &:active
+  &.active
+    outline: 0
+    background-image: none
+    box-shadow inset 0 .25em .5em rgba(0,0,0,.125) 
+  &.disabled
+  &[disabled]
+    cursor not-allowed
+    pointer-events none
+    opacity .65
+    box-shadow none
+
+.btn-block 
+  display block
+  width 100%
+  padding-left 0
+  padding-right 0
+
+.btn-block + .btn-block
+  margin-top .5em
+
+input[type="submit"]
+input[type="reset"]
+input[type="button"]
+  &.btn-block
+    width: 100%
+
+.bg-green
+  background liteGreen
+.bg-blue
+  background liteBlue
+.bg-purple
+  background litePurple
+.bg-red
+  background liteRed
+.bg-orange
+  background liteOrange
+.bg-yellow
+  background liteYellow
+.bg-dark
+  background sortaDark
+.text-green
+  color liteGreen
+.text-blue
+  color liteBlue
+.text-white
+  color white
+.text-dark
+  color sortaDark
+
+.modal-title
+  margin 0
+.modal-close
+  position absolute
+  right 1rem
+  top 1rem
+  font-size 2rem
+  line-height 1.5rem
+  cursor pointer
+  font-weight bold
+  font-family sans-serif
+  color #ccc
+  &:hover
+    color sortaDark
+
+.demo-indicator
+  transition bottom .5s linear
+  position fixed
+  bottom -100%
+  left 0
+  background rgba(255,255,255,.67)
+  box-shadow 0 -2px 2px rgba(0,0,0,.25)
+  width 100%
+  height 2.5rem
+  color liteGreen
+  font-size .75rem
+  font-weight bold
+  line-height 2.5rem
+  p
+    display inline-block
+    margin 0 2rem
+    &:before
+      transition border .25s ease, background .25s ease
+      content ""
+      width 1rem
+      height 1rem
+      border-radius 1rem
+      display inline-block
+      line-height 2.5rem
+      margin-right .5rem
+      position relative
+      top .25rem
+      border .25rem solid liteGreen
+      border-bottom-color transparent
+      animation spin 1s linear infinite
+
+.demo-active
+  .demo-indicator
+    bottom 0
+    p:after
+      content "running..."
+
+.demo-complete
+  .demo-indicator
+    bottom 0
+    p:after
+      content "complete!"
+    p:before
+      border-bottom-color liteGreen
+      background liteGreen
+      animation none
+
 // Styles for when highlight mode is active
 .plotter-highlight-mode 
   body
@@ -231,7 +367,8 @@ inline-row(children)
   display block
   text-align center
   margin-bottom .5rem
-  
+
+/*
 .btn
   cursor pointer
   border-radius .125rem
@@ -240,6 +377,7 @@ inline-row(children)
   border none
   font-family inherit
   // font-weight 300
+*/
 
 #clear-player-select
 #render-button
@@ -257,6 +395,7 @@ lightenAmount = 15%
 #clear-player-select
   width 100%
 
+/*
 #render-button
   background-color liteGreen
   color sortaDark
@@ -288,12 +427,12 @@ lightenAmount = 15%
     background-color rgba(44, 62, 80,1.0) 
     border-color rgba(44, 62, 80,1.0) 
     color rgba(39, 174, 96,1.0)
+*/
 
 // http://demosthenes.info/blog/744/Make-SVG-Responsive
 #scatterplot-wrapper
   position relative
-  margin-left auto
-  margin-right auto
+  margin 0 auto 4rem
   width 80%
   svg
     position relative
@@ -324,6 +463,9 @@ lightenAmount = 15%
 
 #hover-data
   cursor move
+  cursor -webkit-grab
+  cursor -moz-grab
+  cursor grab
   display none
   font-size .5rem
   font-weight bold
@@ -333,6 +475,10 @@ lightenAmount = 15%
   border-radius .25rem
   background rgba(255,255,255,.75)
   border .125rem solid rgba(0,0,0,.25)
+  &:active
+    cursor -webkit-grabbing
+    cursor -moz-grabbing
+    cursor grabbing
     
 @media screen and (min-width:  37.500em)
   html
@@ -375,9 +521,9 @@ h1
 h2
   font-size 2rem
   font-weight 100
-  margin-top 2rem
-  margin-bottom 1rem
-  border-bottom 1px solid #ccc
+  // margin-top 2rem
+  // margin-bottom 1rem
+  // border-bottom 1px solid #ccc
 
 .long-li-list
   list-style none
@@ -421,8 +567,8 @@ p
 .faux-click
   width 1.25rem
   height 1.25rem
-  background rgba(0,0,0,.33)
-  border .125rem solid rgba(255,255,255,.33)
+  background rgba(0,0,0,.3)
+  border .125rem solid rgba(0,0,0,.4)
   border-radius 2rem
   position absolute
   transform-origin center center
@@ -446,3 +592,123 @@ p
     opacity 0
     transform scale(1.5)
   
+@keyframes spin
+  from
+    transform rotate(0deg)
+  to
+    transform rotate(360deg)
+
+
+// Adapted from Bootstrap modal styles
+.modal-open
+  overflow hidden
+
+.modal
+  display none
+  overflow auto
+  overflow-y scroll
+  position fixed
+  top 0
+  right 0
+  bottom 0
+  left 0
+  z-index 10040
+  &.fade
+    .modal-dialog
+      -webkit-transform translate(0, -25%)
+      -ms-transform translate(0, -25%)
+      transform translate(0, -25%)
+      opacity 0
+      -webkit-transition -webkit-transform .3s ease, opacity .3s ease
+      -moz-transition -moz-transform .3s ease, opacity .3s ease
+      -ms-transition -ms-transform .3s ease, opacity .3s ease
+      -o-transition -o-transition .3s ease, opacity .3s ease
+      transition transform .3s ease, opacity .3s ease
+  &.in
+    .modal-dialog
+      opacity 1
+      -webkit-transform translate(0, 0)
+      -ms-transform translate(0, 0)
+      transform translate(0, 0)
+
+.modal-dialog
+  position relative
+  margin-left auto
+  margin-right auto
+  width auto
+  padding 10px
+  z-index 10050
+
+.modal-content
+  position relative
+  background-color #ffffff
+  border 1px solid #999999
+  border 1px solid rgba(0, 0, 0, 0.2)
+  border-radius 6px
+  -webkit-box-shadow 0 3px 9px rgba(0, 0, 0, 0.5)
+  box-shadow 0 3px 9px rgba(0, 0, 0, 0.5)
+  background-clip padding-box
+  outline none
+  -webkit-box-shadow 0 5px 15px rgba(0, 0, 0, 0.5)
+  box-shadow 0 5px 15px rgba(0, 0, 0, 0.5)
+
+.modal-backdrop
+  position fixed
+  top 0
+  right 0
+  bottom 0
+  left 0
+  z-index 10030
+  background-color #000000
+  &.fade
+    opacity 0
+    filter alpha(opacity=0)
+  &.in
+    opacity 0.5
+    filter alpha(opacity=50)
+
+.modal-header
+  padding 1rem
+  border-bottom 1px solid #e5e5e5
+  min-height 1rem
+  .close
+    margin-top -2px
+
+.modal-title
+  margin 0
+  line-height 1.5
+
+.modal-body
+  position relative
+  margin 1rem
+
+.modal-footer
+  margin-top 1rem
+  padding 1rem
+  text-align right
+  border-top 1px solid #e5e5e5
+  &:after
+    clear both
+  .btn
+    & + .btn
+      margin-left .25rem
+      margin-bottom 0
+  .btn-group
+    .btn
+      & + .btn
+        margin-left -1px
+  .btn-block
+    & + .btn-block
+      margin-left 0
+
+.modal-footer:before,
+.modal-footer:after
+  content " "
+  display table
+
+@media screen and (min-width: 768px)
+  .modal-dialog
+    width 37.5rem
+    padding-top 2rem
+    padding-bottom 2rem
+

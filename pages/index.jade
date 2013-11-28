@@ -2,14 +2,15 @@ extends layout
 
 block head
   link(rel="stylesheet", href="/stylesheets/chosen-relative.css")
+  link(rel="stylesheet", href="/stylesheets/bootstrap-modal-relative.css")
 
 block content
-  .column
+  #controls.column
     h1.text-center Plotter
     p.text-center.page-title Generate scatterplots of NFL player stats.
     p.information
-      span <a id="show-me" href="#">Show Me</a>
-      span <a href="/about.html">Learn More</a>
+      button#show-me.btn.bg-green Demo
+      button#show-about.btn.bg-dark(data-toggle="modal", data-target="#about-modal") About
     // span.collapse.section-open
     //  span COLLAPSE
     //  | CONTROL GROUP
@@ -78,14 +79,13 @@ block content
         label#game-label.radio-right(for='game-stats') Game Avg.
     div.control-row.render-wrapper
       .button-holder
-        button.btn#render-button Render
-        button.btn#highlight-button Highlight Mode
-    div.error-warning-log
+        button.btn.btn-large.bg-green.text-dark#render-button Render
+        button.btn.btn-large.bg-dark.text-green#highlight-button Highlight Mode
       // span.dismiss-errors Dismiss
       
       
-  div.column#scatterplot-wrapper
-  
+  div.column#scatterplot-wrapper  
+
   div#hover-data.column.hover-data(draggable="true")
     span#player-name-year Drag and drop this.
     p#x-axis-data
@@ -104,6 +104,70 @@ block content
       | (Color Shade Stat)
       span#c-axis-data-name  
       span#c-axis-data-value
+
+  div.demo-indicator
+    p Demo 
+    button.btn.btn-small.bg-dark#stop-demo Stop demo
+    button.btn.btn-small.bg-green(data-toggle="modal", data-target="#demo-1-modal") Demo Info
+
+  aside.modal.fade
+    .modal-dialog
+      .modal-content
+        header.modal-header
+          h2.modal-title
+            span.modal-subhead
+          span.modal-close(data-dismiss="modal") &times;
+        .modal-body
+          p
+        footer.modal-footer
+          button.btn.bg-dark(dismiss-dismiss="modal") Close
+
+  aside.modal.fade#demo-1-modal
+    .modal-dialog
+      .modal-content
+        header.modal-header
+          h2.modal-title Demo 1
+            span.modal-subhead 2011 Quarterback Outliers
+          span.modal-close(data-dismiss="modal") &times;
+        .modal-body
+          p Five different quarterbacks &mdash; Aaron Rodgers, Drew Brees, Tom Brady, Matt Stafford, and Cam Newton &mdash; had sensational 2011 seasons. They were so good, in fact, that many fantasy experts advocated a dramatic shift in draft strategy (this also occured to a lesser extent with tight ends). This demo shows that the 2011 stud QBs were the exception rather than the rule. In fact in 2011, the fifth best quarterback (Cam Newton) scored more points than the <em>top scoring</em> quarterback in any of the other years from 2008 - 2012.
+        footer.modal-footer
+          button.btn.bg-dark(data-dismiss="modal") Close
+
+  aside.modal.fade#demo-2-modal
+    .modal-dialog
+      .modal-content
+        header.modal-header
+          h2.modal-title Demo 2
+            span.modal-subhead Positional Value: RB vs. WR
+          span.modal-close(data-dismiss="modal") &times;
+        .modal-body
+          p
+        footer.modal-footer
+          button.btn.bg-dark(dismiss-dismiss="modal") Close
+
+  aside.modal.fade#about-modal
+    .modal-dialog
+      .modal-content
+        header.modal-header
+          h2.modal-title About
+          span.modal-close(data-dismiss="modal")&times;
+        .modal-body
+          p 
+            strong This tool is still in development and should not be considered a finished product. 
+          h3 Purpose
+          p Plotter is a tool that creates scatterplots of NFL player data. It was developed specifically with fantasy football in mind, to help visualize trends that occur over time at a positional level. For instance, graphing fantasy points against position rank for 2012 and 2008 shows that in general the <em>n</em>-th highest scoring running back contributed substantially more points over a season in 2008 than in 2012. These kinds of insights can–and should–inform draft strategy and roster construction.
+          h3 Design
+          p I based the visual style on a set of <a href="http://cssdeck.com/labs/flat-forms">flat form elements</a> I had previously developed. Colors are cribbed from <a href="http://flatuicolors.com">Flat UI Colors</a>. The typeface used here is CamingoDos Web, served by <a href="https://typekit.com/fonts">Typekit</a>.
+          h3 Code
+          p Plotter runs entirely on the client. The dataset is a single large JSON file, delivered to the client asynchronously.
+          p The chart drawing function uses <a href="http://d3js.org/">d3.js</a>, a great data visualization library. Other libraries include: <a href="http://brehaut.net/code/color">Color.js</a> for color manipulation; <a href="http://harvesthq.github.io/chosen/">Chosen.js</a> with a <a href="https://github.com/nickb1080/chosen/blob/master/public/chosen.css">custom stylesheet</a> using relative units and a tiny data-URI font for icons; and of course <a href="http://jquery.com/">jQuery</a>.
+          h3 Data
+          p This dataset is collected from the <a href="http://www.pro-football-reference.com/years/2012/fantasy.htm">fantasy stats</a> provided by PFR. Currently it contains the top 60 players per season at each of the four offensive fantasy football positions. I Plan to continue to update it annually.
+          h3 Future
+          p I plan to continue tweaking and adding features for the forseeable future. The next addition will be a filtering slider to limit the number of player-seasons returned. 
+        footer.modal-footer
+          button.btn.bg-dark(data-dismiss="modal")
 
   select#original(style='display: none;')
     option
@@ -136,16 +200,22 @@ block content
         option(data-stat='Age') Age
         option(data-stat='G') Games Played
         option(data-stat='GS') Games Started
-  
 
 
 block body-scripts
   script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js")
   script.
     window.jQuery || document.write('<script src="/javascripts/jquery-1.9.1.min.js"><\/script>')
+  // script(src="/js/bootstrap-transitions.js")
+  script(src="/js/bootstrap-modal.js")
   script(src="/js/d3.min.js")
   script(src="/js/chosen.jquery.min.js")
   script(src="/js/color.js")
   script.
     var Color = net.brehaut.Color;
-  script(src="/js/plotter-module.js")  
+  script(src="/js/plotter-module.js")
+  script(src="/js/plotter-demos.js")
+  // script.
+  //   if ($("html").is(".plotter-development")) {
+  //     Plotter.demoStart(false);
+  //   }

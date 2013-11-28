@@ -10,12 +10,16 @@
     <script type="text/javascript" src="//use.typekit.net/rqw3sre.js"></script>
     <script>try{Typekit.load();}catch(e){}</script>
     <link rel="stylesheet" href="/stylesheets/chosen-relative.css">
+    <link rel="stylesheet" href="/stylesheets/bootstrap-modal-relative.css">
   </head>
   <body>
-    <div class="column">
+    <div id="controls" class="column">
       <h1 class="text-center">Plotter</h1>
       <p class="text-center page-title">Generate scatterplots of NFL player stats.</p>
-      <p class="information"><span><a id="show-me" href="#">Show Me</a></span><span><a href="/about.html">Learn More</a></span></p>
+      <p class="information">
+        <button id="show-me" class="btn bg-green">Demo</button>
+        <button id="show-about" data-toggle="modal" data-target="#about-modal" class="btn bg-dark">About</button>
+      </p>
       <!-- span.collapse.section-open-->
       <!--  span COLLAPSE-->
       <!--  | CONTROL GROUP-->
@@ -92,21 +96,95 @@
       </div>
       <div class="control-row render-wrapper">
         <div class="button-holder">
-          <button id="render-button" class="btn">Render</button>
-          <button id="highlight-button" class="btn">Highlight Mode</button>
+          <button id="render-button" class="btn btn-large bg-green text-dark">Render</button>
+          <button id="highlight-button" class="btn btn-large bg-dark text-green">Highlight Mode</button>
         </div>
-      </div>
-      <div class="error-warning-log">
         <!-- span.dismiss-errors Dismiss-->
       </div>
     </div>
-    <div id="scatterplot-wrapper" class="column"></div>
+    <div id="scatterplot-wrapper" class="column"> </div>
     <div id="hover-data" draggable="true" class="column hover-data"><span id="player-name-year">Drag and drop this.</span>
       <p id="x-axis-data">(X-Axis)<span id="x-axis-data-name"></span><span id="x-axis-data-value"></span></p>
       <p id="y-axis-data">(Y-Axis)<span id="y-axis-data-name"></span><span id="y-axis-data-value"></span></p>
       <p id="r-axis-data">(Radius Size Stat)<span id="r-axis-data-name"></span><span id="r-axis-data-value"></span></p>
       <p id="c-axis-data">(Color Shade Stat)<span id="c-axis-data-name"> </span><span id="c-axis-data-value"></span></p>
     </div>
+    <div class="demo-indicator">
+      <p>Demo </p>
+      <button id="stop-demo" class="btn btn-small bg-dark">Stop demo</button>
+      <button data-toggle="modal" data-target="#demo-1-modal" class="btn btn-small bg-green">Demo Info</button>
+    </div>
+    <aside class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <header class="modal-header">
+            <h2 class="modal-title"><span class="modal-subhead"></span></h2><span data-dismiss="modal" class="modal-close">&times;</span>
+          </header>
+          <div class="modal-body">
+            <p></p>
+          </div>
+          <footer class="modal-footer">
+            <button dismiss-dismiss="modal" class="btn bg-dark">Close</button>
+          </footer>
+        </div>
+      </div>
+    </aside>
+    <aside id="demo-1-modal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <header class="modal-header">
+            <h2 class="modal-title">Demo 1<span class="modal-subhead">2011 Quarterback Outliers</span></h2><span data-dismiss="modal" class="modal-close">&times;</span>
+          </header>
+          <div class="modal-body">
+            <p>Five different quarterbacks &mdash; Aaron Rodgers, Drew Brees, Tom Brady, Matt Stafford, and Cam Newton &mdash; had sensational 2011 seasons. They were so good, in fact, that many fantasy experts advocated a dramatic shift in draft strategy (this also occured to a lesser extent with tight ends). This demo shows that the 2011 stud QBs were the exception rather than the rule. In fact in 2011, the fifth best quarterback (Cam Newton) scored more points than the <em>top scoring</em> quarterback in any of the other years from 2008 - 2012.</p>
+          </div>
+          <footer class="modal-footer">
+            <button data-dismiss="modal" class="btn bg-dark">Close</button>
+          </footer>
+        </div>
+      </div>
+    </aside>
+    <aside id="demo-2-modal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <header class="modal-header">
+            <h2 class="modal-title">Demo 2<span class="modal-subhead">Positional Value: RB vs. WR</span></h2><span data-dismiss="modal" class="modal-close">&times;</span>
+          </header>
+          <div class="modal-body">
+            <p></p>
+          </div>
+          <footer class="modal-footer">
+            <button dismiss-dismiss="modal" class="btn bg-dark">Close</button>
+          </footer>
+        </div>
+      </div>
+    </aside>
+    <aside id="about-modal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <header class="modal-header">
+            <h2 class="modal-title">About</h2><span data-dismiss="modal" class="modal-close">&times;</span>
+          </header>
+          <div class="modal-body">
+            <p> <strong>This tool is still in development and should not be considered a finished product. </strong></p>
+            <h3>Purpose</h3>
+            <p>Plotter is a tool that creates scatterplots of NFL player data. It was developed specifically with fantasy football in mind, to help visualize trends that occur over time at a positional level. For instance, graphing fantasy points against position rank for 2012 and 2008 shows that in general the <em>n</em>-th highest scoring running back contributed substantially more points over a season in 2008 than in 2012. These kinds of insights can–and should–inform draft strategy and roster construction.</p>
+            <h3>Design</h3>
+            <p>I based the visual style on a set of <a href="http://cssdeck.com/labs/flat-forms">flat form elements</a> I had previously developed. Colors are cribbed from <a href="http://flatuicolors.com">Flat UI Colors</a>. The typeface used here is CamingoDos Web, served by <a href="https://typekit.com/fonts">Typekit</a>.</p>
+            <h3>Code</h3>
+            <p>Plotter runs entirely on the client. The dataset is a single large JSON file, delivered to the client asynchronously.</p>
+            <p>The chart drawing function uses <a href="http://d3js.org/">d3.js</a>, a great data visualization library. Other libraries include: <a href="http://brehaut.net/code/color">Color.js</a> for color manipulation; <a href="http://harvesthq.github.io/chosen/">Chosen.js</a> with a <a href="https://github.com/nickb1080/chosen/blob/master/public/chosen.css">custom stylesheet</a> using relative units and a tiny data-URI font for icons; and of course <a href="http://jquery.com/">jQuery</a>.</p>
+            <h3>Data</h3>
+            <p>This dataset is collected from the <a href="http://www.pro-football-reference.com/years/2012/fantasy.htm">fantasy stats</a> provided by PFR. Currently it contains the top 60 players per season at each of the four offensive fantasy football positions. I Plan to continue to update it annually.</p>
+            <h3>Future</h3>
+            <p>I plan to continue tweaking and adding features for the forseeable future. The next addition will be a filtering slider to limit the number of player-seasons returned. </p>
+          </div>
+          <footer class="modal-footer">
+            <button data-dismiss="modal" class="btn bg-dark"></button>
+          </footer>
+        </div>
+      </div>
+    </aside>
     <select id="original" style="display: none;">
       <option></option>
       <optgroup label="Passing">
@@ -148,12 +226,17 @@
     <p class="copyright">Built by Nick Bottomley, 2013</p>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="/javascripts/jquery-1.9.1.min.js"><\/script>')</script>
+    <!-- script(src="/js/bootstrap-transitions.js")-->
+    <script src="/js/bootstrap-modal.js"></script>
     <script src="/js/d3.min.js"></script>
     <script src="/js/chosen.jquery.min.js"></script>
     <script src="/js/color.js"></script>
     <script>var Color = net.brehaut.Color;</script>
-    <!-- script(src="/js/plotter-revealing.js")-->
     <script src="/js/plotter-module.js"></script>
-    <!-- script(src="/js/plotter.js")-->
+    <script src="/js/plotter-demos.js"></script>
+    <!-- script.-->
+    <!--   if ($("html").is(".plotter-development")) {-->
+    <!--     Plotter.demoStart(false);-->
+    <!--   }-->
   </body>
 </html>

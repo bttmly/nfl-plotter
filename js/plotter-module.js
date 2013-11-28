@@ -16,8 +16,10 @@ window.Plotter = {
   settings: function() {
     return {
       els: {
+        window: $(window),
         html: $("html"),
         body: $("body"),
+        controls: $("#controls"),
         renderButton: $("#render-button"),
         highlightButton: $("#highlight-button"),
         allCheckLabels: $(".check-label"),
@@ -56,8 +58,8 @@ window.Plotter = {
         datasetURL: "/data/dataset.08-12.json",
         namesURL: "/data/names.08-12.json",
         chartPadding: 60,
-        chartHeight: 0,
-        chartWidth: 0,
+        chartHeight: 450,
+        chartWidth: 900,
         selections: {},
         perGameMinGames: 4,
         posColors: {
@@ -264,9 +266,15 @@ window.Plotter = {
     $el.body.on("drop", function(event) {
       return plotter.hoverLogDrop(event, this);
     });
-    return $el.body.on("click", "#show-me", function(event) {
+    $el.body.on("click", "#show-me", function(event) {
       event.preventDefault();
       return plotter.demoStart(false);
+    });
+    $el.body.on("click", "#stop-demo, #dismiss-reset", function(event) {
+      return plotter.demoStop();
+    });
+    return $el.window.on("resize", function(event) {
+      return plotter.fixPlotHeight();
     });
   },
   pageSetup: function(s) {
@@ -280,6 +288,9 @@ window.Plotter = {
         return "production";
       }
     })();
+    this.s.els.body.animate({
+      scrollTop: 0
+    });
     this.s.els.html.addClass("plotter-" + Plotter.env);
     this.s.els.playerPosGroups.hide();
     $.getJSON(Plotter.s.vals.datasetURL, function(json) {
@@ -347,7 +358,7 @@ window.Plotter = {
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           player = _ref[_i];
-          _results.push($(player).val());
+          _results.push($(player).html());
         }
         return _results;
       })(),
@@ -412,7 +423,7 @@ window.Plotter = {
     return validity;
   },
   getGraphingData: function(sel, data) {
-    var dataPoints, match, name, player, position, season, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
+    var dataPoints, match, player, position, season, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3, _ref4;
     _log("getGraphingData started...");
     _log("sel:");
     _log(sel);
@@ -434,57 +445,73 @@ window.Plotter = {
         }
       }
     } else if (sel.sortType === "players") {
+      _log("sort type players");
+      _log(sel.seasons);
       _ref3 = sel.seasons;
       for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
         season = _ref3[_l];
-        _ref4 = data[season];
-        for (_m = 0, _len4 = _ref4.length; _m < _len4; _m++) {
-          position = _ref4[_m];
-          _ref5 = sel.players;
-          for (_n = 0, _len5 = _ref5.length; _n < _len5; _n++) {
-            name = _ref5[_n];
-            match = data[season][position].filter(function(player) {
-              return player.Name === name;
+        _log("season");
+        _log(season);
+        _log("data[season]");
+        _log(data[season]);
+        for (position in data[season]) {
+          _log("position");
+          _log(position);
+          _ref4 = sel.players;
+          for (_m = 0, _len4 = _ref4.length; _m < _len4; _m++) {
+            player = _ref4[_m];
+            _log("player");
+            _log(player);
+            match = data[season][position].filter(function(thisPlayer) {
+              return thisPlayer.Name === player;
             });
+            _log("match");
+            _log(match);
             if (match.length) {
-              dataPoints.push(match);
+              dataPoints.push(match[0]);
             }
           }
         }
       }
+      _log(dataPoints);
     }
     if (sel.statType === "game") {
-      dataPoints = this.calculatePerGameData(dataPoints);
+      dataPoints = this.calculatePerGameData($.extend(true, [], dataPoints));
     }
     return dataPoints;
   },
-  calculatePerGameData: function(data) {
-    var key, playerSeason, val, _i, _len, _ref;
-    for (_i = 0, _len = data.length; _i < _len; _i++) {
-      playerSeason = data[_i];
+  calculatePerGameData: function(dataPoints) {
+    var i, key, playerSeason, val, _i, _len, _ref;
+    for (i = _i = 0, _len = dataPoints.length; _i < _len; i = ++_i) {
+      playerSeason = dataPoints[i];
       if (playerSeason.G < this.s.vals.perGameMinGames) {
-        playerSeason = {};
+        dataPoints[i] = {};
         continue;
       }
       _ref = this.s.vals.selections.variables;
       for (key in _ref) {
         val = _ref[key];
         if (__indexOf.call(this.s.vals.perGameStats, val) >= 0) {
-          playerSeason[val] = playerSeason[val] / playerSeason.G;
+          playerSeason[val] = this.utils.roundTwoPlaces(playerSeason[val] / playerSeason.G);
         }
       }
     }
-    return data;
+    return this.utils.removeEmptyObjects(dataPoints);
   },
   calculateScales: function(sel, data) {
     var chartHeight, chartPadding, chartWidth, datum, scaleVals, scales, v, _i, _len;
+    this.s.els.chartWrapper.css("visibility", "hidden").empty().height("400px").width("800px");
     _log("calculateScales started...");
     _log(sel);
     _log(data);
     scales = {};
     chartPadding = this.s.vals.chartPadding;
-    chartWidth = this.s.vals.chartWidth = this.s.els.chartWrapper.width() * .9;
-    chartHeight = this.s.vals.chartHeight = chartWidth * 0.5;
+    chartWidth = this.s.vals.chartWidth;
+    chartHeight = this.s.vals.chartHeight;
+    _log("CHART WIDTH");
+    _log(chartWidth);
+    _log("CHART HEIGHT");
+    _log(chartHeight);
     scaleVals = {
       x: {
         min: 1000000,
@@ -538,7 +565,7 @@ window.Plotter = {
     return scales;
   },
   drawChart: function(dataset, selected, scales) {
-    var $plot, c, chartHeight, chartPadding, chartWidth, dot, dotHolder, pieces, posColors, r, ratio, scatterplot, scatterplotPoints, svgDomElement, x, xAxis, y, yAxis, _i, _len, _ref, _ref1;
+    var $plot, c, chartHeight, chartPadding, chartWidth, dot, dotHolder, pieces, posColors, r, scatterplot, scatterplotPoints, svgDomElement, x, xAxis, y, yAxis, _i, _len, _ref;
     chartHeight = this.s.vals.chartHeight;
     chartWidth = this.s.vals.chartWidth;
     chartPadding = this.s.vals.chartPadding;
@@ -546,9 +573,6 @@ window.Plotter = {
     _log(dataset);
     _log(selected);
     _log(scales);
-    if ((_ref = this.s.els.chart) != null) {
-      _ref.remove();
-    }
     posColors = this.s.vals.posColors;
     x = selected.variables.xAxis;
     y = selected.variables.yAxis;
@@ -594,9 +618,9 @@ window.Plotter = {
     scatterplot.append("text").attr("class", "yAxis-label").attr("transform", "translate( " + chartPadding + ", 0) rotate(-90)").text(y);
     this.s.els.chart = this.s.els.chartWrapper.find("svg");
     this.s.els.dots = this.s.els.chart.find("circle");
-    _ref1 = this.s.els.dots;
-    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-      dot = _ref1[_i];
+    _ref = this.s.els.dots;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      dot = _ref[_i];
       pieces = dot.id.split("_");
       $(dot).attr("data-player-name", pieces[0].split("-").join(" "));
       $(dot).attr("data-player-season", pieces[1]);
@@ -605,13 +629,19 @@ window.Plotter = {
     svgDomElement = this.s.els.chartWrapper.find("svg")[0];
     svgDomElement.setAttribute('preserveAspectRatio', 'xMinYMin meet');
     svgDomElement.setAttribute("viewBox", "0 0 800 400");
+    this.s.els.chartWrapper.css("visibility", "visible").css("width", "");
+    this.fixPlotHeight();
     $plot = this.s.els.chartWrapper.find("svg").eq(0);
-    ratio = $plot.prop("viewBox").baseVal.height / $plot.prop("viewBox").baseVal.width;
-    $plot.parent().height(ratio * $plot.parent().width());
     return this.s.els.$log.fadeIn().css({
       top: $plot.offset().top,
       left: $plot.offset().left + $plot.width() - this.s.els.$log.width()
     });
+  },
+  fixPlotHeight: function() {
+    var $plot, ratio;
+    $plot = this.s.els.chartWrapper.find("svg").eq(0);
+    ratio = $plot.prop("viewBox").baseVal.height / $plot.prop("viewBox").baseVal.width;
+    return $plot.parent().height(ratio * $plot.parent().width());
   },
   highlightModeSwitch: function() {
     var Plotter, highlightModeUpdate, highlighted, key, value, _results;
@@ -737,8 +767,7 @@ window.Plotter = {
     return this.s.els.$cVal.html(props[v.cAxis]);
   },
   circleCursorOut: function(el) {
-    this.s.els.$allHoverSpans.html("&nbsp;");
-    return el.prependTo($("#dot-holder"));
+    return this.s.els.$allHoverSpans.html("&nbsp;");
   },
   clearSelectedPlayers: function() {
     return this.s.els.selectedPlayersLi().remove();
@@ -759,37 +788,49 @@ window.Plotter = {
     return false;
   },
   demoStart: function(dev) {
-    var actions, els, i, key, sequencedTimeouts, totalTime, val, _results,
+    var Plotter, action, els, i, index, key, lastTimeout, sequencedTimeouts, totalTime, _i, _len, _ref,
       _this = this;
+    index = this.utils.getRandomInt(0, this.demos.length - 1);
+    Plotter = this;
     els = this.s.els;
-    $("input:checked").prop("checked", false);
-    $("select.variable").each(function() {
-      return $(this).find("option:checked").prop("checked", false).end().trigger("liszt:updated");
-    });
+    this.resetPage();
+    this.s.els.html.addClass("demo-active");
     totalTime = 0;
     this.allTimeouts = [];
-    sequencedTimeouts = function(i, obj) {
+    sequencedTimeouts = function(action, i) {
       var delay, to;
-      delay = obj.delay || 1000;
+      console.log(action);
+      delay = action.delay || 1000;
       totalTime += delay;
       to = setTimeout(function() {
-        obj.fn();
+        action.fn();
       }, totalTime);
       return _this.allTimeouts.push(to);
     };
     $.fn.extend({
-      fauxClick: function() {
-        var click, fromLeft, fromTop;
-        fromTop = this.offset().top + 25;
-        fromLeft = this.offset().left + 25;
-        click = $("<div class='faux-click'>").appendTo($("body"));
+      fauxClick: function(options) {
+        var click, defaults, fromLeft, fromTop, settings;
+        defaults = {
+          duration: 2000,
+          className: "faux-click",
+          top: 15,
+          left: 15,
+          triggerClick: true
+        };
+        settings = $.extend(defaults, options || {});
+        if (settings.triggerClick) {
+          $(this).click();
+        }
+        fromTop = this.offset().top + settings.top;
+        fromLeft = this.offset().left + settings.left;
+        click = $("<div class='" + settings.className + "'>").appendTo($("body"));
         click.css({
           top: fromTop,
           left: fromLeft
         });
         setTimeout(function() {
           click.remove();
-        }, 2000);
+        }, settings.duration);
         return this;
       },
       typeOut: function(str, callback) {
@@ -816,8 +857,7 @@ window.Plotter = {
                 enter = jQuery.Event('keyup', {
                   which: 13
                 });
-                $this.trigger(enter);
-                return $this.trigger("blur");
+                return $this.trigger(enter);
               }
             }, 75 * i);
           })();
@@ -832,170 +872,26 @@ window.Plotter = {
         return this;
       }
     });
-    actions = {
-      1: {
-        delay: 750,
-        fn: function() {
-          return els.body.animate({
-            scrollTop: $("#pp-controls").offset().top
-          });
-        }
-      },
-      2: {
-        delay: 750,
-        fn: function() {
-          return $("#positions-label").trigger("click").fauxClick();
-        }
-      },
-      3: {
-        delay: 750,
-        fn: function() {
-          return $("[for='input-RB']").trigger("click").fauxClick();
-        }
-      },
-      4: {
-        delay: 750,
-        fn: function() {
-          return $("[for='input-WR']").trigger("click").fauxClick();
-        }
-      },
-      5: {
-        delay: 750,
-        fn: function() {
-          return $("[for='input-2012']").trigger("click").fauxClick();
-        }
-      },
-      6: {
-        delay: 750,
-        fn: function() {
-          return $("[for='input-2011']").trigger("click").fauxClick();
-        }
-      },
-      7: {
-        delay: 750,
-        fn: function() {
-          return $("[for='input-2010']").trigger("click").fauxClick();
-        }
-      },
-      8: {
-        delay: 750,
-        fn: function() {
-          return els.body.animate({
-            scrollTop: $(".control-row").eq(1).offset().top
-          });
-        }
-      },
-      9: {
-        delay: 1000,
-        fn: function() {
-          $("#x-select").trigger("liszt:open");
-          return $("#x_select_chzn").fauxClick();
-        }
-      },
-      10: {
-        delay: 500,
-        fn: function() {
-          return $("#x_select_chzn input").typeOut("fantasy position rank", function() {
-            return $.noop;
-          });
-        }
-      },
-      11: {
-        delay: 2000,
-        fn: function() {
-          $("#y-select").trigger("liszt:open");
-          return $("#y_select_chzn").fauxClick();
-        }
-      },
-      12: {
-        delay: 500,
-        fn: function() {
-          return $("#y_select_chzn input").typeOut("fantasy points", function() {
-            return $.noop;
-          });
-        }
-      },
-      13: {
-        delay: 2000,
-        fn: function() {
-          $("#r-select").trigger("liszt:open");
-          return $("#r_select_chzn").fauxClick();
-        }
-      },
-      14: {
-        delay: 500,
-        fn: function() {
-          return $("#r_select_chzn input").typeOut("total scrimmage yards", function() {
-            return $.noop;
-          });
-        }
-      },
-      15: {
-        delay: 2000,
-        fn: function() {
-          $("#c-select").trigger("liszt:open");
-          return $("#c_select_chzn").fauxClick();
-        }
-      },
-      16: {
-        delay: 500,
-        fn: function() {
-          return $("#c_select_chzn input").typeOut("total touchdowns", function() {
-            return $.noop;
-          });
-        }
-      },
-      17: {
-        delay: 1500,
-        fn: function() {
-          return els.body.animate({
-            scrollTop: $("#avg-total-pair-holder").prev("p").offset().top
-          });
-        }
-      },
-      18: {
-        delay: 750,
-        fn: function() {
-          return $("#season-label").trigger("click").fauxClick();
-        }
-      },
-      19: {
-        delay: 750,
-        fn: function() {
-          return els.body.animate({
-            scrollTop: $("#render-button").offset().top
-          });
-        }
-      },
-      20: {
-        delay: 750,
-        fn: function() {
-          return $("#render-button").fauxClick().trigger("click");
-        }
-      },
-      21: {
-        delay: 500,
-        fn: function() {
-          return els.body.animate({
-            scrollTop: $("#d3-scatterplot").offset().top
-          });
-        }
-      }
-    };
     if (dev) {
       for (key in actions) {
         actions[key].delay = 100;
       }
     }
-    i = 0;
-    _results = [];
-    for (key in actions) {
-      val = actions[key];
+    _ref = this.demos[index];
+    for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+      action = _ref[i];
       console.log(key);
-      sequencedTimeouts(key, val);
-      _results.push(i++);
+      sequencedTimeouts(action, i);
     }
-    return _results;
+    lastTimeout = setTimeout(function() {
+      return Plotter.demoComplete();
+    }, totalTime + 2000);
+    return this.allTimeouts.push(lastTimeout);
+  },
+  demoComplete: function() {
+    els.html.removeClass("demo-active");
+    els.html.addClass("demo-complete");
+    return $("#stop-demo").html("Dismiss");
   },
   demoStop: function() {
     var timeout, _i, _len, _ref, _results;
@@ -1006,6 +902,16 @@ window.Plotter = {
       _results.push(clearTimeout(timeout));
     }
     return _results;
+  },
+  resetPage: function() {
+    if (this.s.els.html.is(".plotter-highlight-mode")) {
+      this.highlightModeSwitch();
+    }
+    this.s.els.html.removeClass("demo-active demo-complete");
+    $("input:checked").prop("checked", false);
+    return $("select.variable").each(function() {
+      return $(this).find("option:checked").prop("checked", false).end().trigger("liszt:updated");
+    });
   },
   data: {},
   utils: {
@@ -1038,8 +944,31 @@ window.Plotter = {
       var l;
       l = arr.length;
       return arr[l - (n + 1)];
+    },
+    getRandomInt: function(min, max) {
+      return Math.floor(Math.random() * (max - min + 1) + min);
+    },
+    removeEmptyObjects: function(arr) {
+      var cleanedArr, obj, _i, _len;
+      cleanedArr = [];
+      for (_i = 0, _len = arr.length; _i < _len; _i++) {
+        obj = arr[_i];
+        if ($.isEmptyObject(obj)) {
+          continue;
+        } else {
+          cleanedArr.push(obj);
+        }
+      }
+      return cleanedArr;
+    },
+    roundTwoPlaces: function(num) {
+      return Math.round(num * 100) / 100;
     }
   }
 };
 
 window.Plotter.init();
+
+if ($("html").is(".plotter-development")) {
+  Plotter.demoStart(false);
+}

@@ -10,8 +10,10 @@ window.Plotter =
     
   settings : ->
     els :
+      window          : $(window)
       html            : $("html")
       body            : $("body")
+      controls        : $("#controls")
       renderButton    : $("#render-button")
       highlightButton : $("#highlight-button")
       allCheckLabels  : $(".check-label")
@@ -52,8 +54,8 @@ window.Plotter =
       namesURL     : "/data/names.08-12.json"
       
       chartPadding : 60
-      chartHeight  : 0
-      chartWidth   : 0
+      chartHeight  : 450
+      chartWidth   : 900
       
       selections : {}
       
@@ -258,6 +260,11 @@ window.Plotter =
       event.preventDefault()
       plotter.demoStart(false)
 
+    $el.body.on "click", "#stop-demo, #dismiss-reset", (event) ->
+      plotter.demoStop()
+
+    $el.window.on "resize", (event) ->
+      plotter.fixPlotHeight()
 
   pageSetup : (s) ->
     
@@ -266,6 +273,9 @@ window.Plotter =
     
     Plotter.env = do ->
       if location.hostname is "localhost" then return "development" else return "production"
+
+    @s.els.body.animate
+      scrollTop: 0
 
     @s.els.html.addClass("plotter-#{Plotter.env}")
 
@@ -322,8 +332,8 @@ window.Plotter =
         
     players : do ->
       for player in el.selectedPlayersSpan()
-        $(player).val()
-        
+        $(player).html()
+
     variables : do ->
       values = {}
       for variable in el.varSelects
@@ -392,13 +402,15 @@ window.Plotter =
     return validity
     
   getGraphingData : (sel, data) ->
-  
+    
+
+
     _log "getGraphingData started..."
     _log "sel:"
     _log sel
     _log "data:"
     _log data
-    
+
     dataPoints = []
     
     if sel.sortType is "positions"
@@ -408,26 +420,46 @@ window.Plotter =
             dataPoints.push(player)
             
     else if sel.sortType is "players"
+      _log "sort type players"
+      _log sel.seasons
+
       for season in sel.seasons
-        for position in data[season]
-          for name in sel.players
-            match = data[season][position].filter (player) ->
-              player.Name is name
+        _log "season"
+        _log season
+
+        _log "data[season]"
+        _log data[season]
+
+        for position of data[season]
+          _log "position"
+          _log position
+
+          for player in sel.players
+            _log "player"
+            _log player
+
+            match = data[season][position].filter (thisPlayer) ->
+              return thisPlayer.Name is player
+
+            _log "match"
+            _log match
+
             if match.length 
-              dataPoints.push(match)
+              dataPoints.push(match[0])
+      _log dataPoints
     
     if sel.statType is "game"
-      dataPoints = @calculatePerGameData(dataPoints)
+      dataPoints = @calculatePerGameData( $.extend( true, [], dataPoints ) )
     
     return dataPoints
   
-  calculatePerGameData : (data) ->
+  calculatePerGameData : (dataPoints) ->
     
-    for playerSeason in data
+    for playerSeason, i in dataPoints
       
       # We're not going to graph this if the player-season doesn't meet the min games requirement
       if playerSeason.G < @s.vals.perGameMinGames
-        playerSeason = {}
+        dataPoints[i] = {}
         # move on to the next player season
         continue
         
@@ -436,15 +468,21 @@ window.Plotter =
         # check if the variable is in the perGameStats array
         if val in @s.vals.perGameStats
           # divide value by games played
-          playerSeason[val] = ( playerSeason[val] / playerSeason.G )
+          playerSeason[val] = this.utils.roundTwoPlaces( playerSeason[val] / playerSeason.G )
     
-    return data
+    return this.utils.removeEmptyObjects( dataPoints )
 
 
 
 
   calculateScales : (sel, data) ->
   
+    this.s.els.chartWrapper
+      .css("visibility", "hidden")
+      .empty()
+      .height("400px")
+      .width("800px")
+
     _log "calculateScales started..."
     _log sel
     _log data
@@ -452,8 +490,13 @@ window.Plotter =
     scales = {}
     
     chartPadding = @s.vals.chartPadding
-    chartWidth = @s.vals.chartWidth = @s.els.chartWrapper.width() * .9
-    chartHeight = @s.vals.chartHeight = chartWidth * 0.5
+    chartWidth = @s.vals.chartWidth
+    chartHeight = @s.vals.chartHeight
+
+    _log "CHART WIDTH"
+    _log chartWidth
+    _log "CHART HEIGHT"
+    _log chartHeight
       
     scaleVals = 
       x :
@@ -515,10 +558,8 @@ window.Plotter =
     _log dataset
     _log selected
     _log scales
-    
-    @s.els.chart?.remove()
+
     posColors = @s.vals.posColors
-    
     x = selected.variables.xAxis
     y = selected.variables.yAxis
     c = selected.variables.cAxis
@@ -620,13 +661,25 @@ window.Plotter =
     svgDomElement.setAttribute("viewBox", "0 0 800 400")
     
     # fix height bug.
-    $plot = @s.els.chartWrapper.find("svg").eq(0)
-    ratio = $plot.prop("viewBox").baseVal.height / $plot.prop("viewBox").baseVal.width
-    $plot.parent().height(ratio * $plot.parent().width() )
+    # this.fixPlotHeight()
 
+    this.s.els.chartWrapper
+      .css("visibility", "visible")
+      .css("width", "")
+
+    this.fixPlotHeight()
+
+    $plot = @s.els.chartWrapper.find("svg").eq(0)
     @s.els.$log.fadeIn().css
       top : $plot.offset().top
       left : $plot.offset().left + $plot.width() - @s.els.$log.width()
+
+
+
+  fixPlotHeight : ->
+    $plot = @s.els.chartWrapper.find("svg").eq(0)
+    ratio = $plot.prop("viewBox").baseVal.height / $plot.prop("viewBox").baseVal.width
+    $plot.parent().height(ratio * $plot.parent().width() )
 
   highlightModeSwitch : ->
     Plotter = this
@@ -760,7 +813,6 @@ window.Plotter =
     
   circleCursorOut : (el) ->
     @s.els.$allHoverSpans.html "&nbsp;"
-    el.prependTo $("#dot-holder")
   
   clearSelectedPlayers : ->
     @s.els.selectedPlayersLi().remove()
@@ -784,29 +836,45 @@ window.Plotter =
 
   demoStart : (dev) ->
 
+    index = this.utils.getRandomInt(0 , this.demos.length - 1)
+
+    Plotter = this
+
     els = this.s.els
 
-    $("input:checked").prop("checked", false)
-    $("select.variable").each ->
-      $(this).find("option:checked").prop("checked", false).end().trigger("liszt:updated")
+    this.resetPage()
+
+    this.s.els.html.addClass "demo-active"
 
     totalTime = 0  
-    @allTimeouts = []
-    sequencedTimeouts = (i, obj) =>
-      delay = obj.delay or 1000
+    this.allTimeouts = []
+    sequencedTimeouts = (action, i) =>
+      console.log action
+      delay = action.delay or 1000
       totalTime += delay
       to = setTimeout ->
-        obj.fn()
+        action.fn()
         return
       , totalTime
-      @allTimeouts.push(to)
+      this.allTimeouts.push(to)
 
     $.fn.extend
-      fauxClick : ->
-        fromTop = @.offset().top + 25
-        fromLeft = @.offset().left + 25
-        click = $( "<div class='faux-click'>" ).appendTo( $("body"))
-        
+      fauxClick : (options) ->
+
+        defaults =
+          duration : 2000
+          className : "faux-click"
+          top : 15
+          left : 15
+          triggerClick : true
+
+        settings = $.extend(defaults, options or {})
+
+        if settings.triggerClick then $(this).click()
+
+        fromTop = this.offset().top + settings.top
+        fromLeft = this.offset().left + settings.left
+        click = $( "<div class='#{settings.className}'>" ).appendTo( $("body") )
         click.css
           top : fromTop
           left : fromLeft
@@ -814,7 +882,7 @@ window.Plotter =
         setTimeout ->
           click.remove()
           return
-        , 2000
+        , settings.duration
 
         return this
 
@@ -837,7 +905,7 @@ window.Plotter =
               if i is letters.length - 1
                 enter = jQuery.Event 'keyup', { which: 13 }
                 $this.trigger(enter)
-                $this.trigger("blur")
+                # $this.trigger("blur")
             , 75 * i
           unless cb
             cb = $.noop
@@ -847,122 +915,41 @@ window.Plotter =
 
         return this
 
-    actions = 
-      1 : 
-        delay : 750
-        fn : ->
-          els.body.animate
-            scrollTop: $("#pp-controls").offset().top
-      2 : 
-        delay : 750
-        fn : ->
-          $( "#positions-label" ).trigger( "click" ).fauxClick()
-      3 :
-        delay : 750
-        fn : ->
-          $("[for='input-RB']").trigger( "click" ).fauxClick()
-      4 :
-        delay : 750
-        fn : ->
-          $("[for='input-WR']").trigger( "click" ).fauxClick()
-      5 :
-        delay : 750
-        fn : ->
-          $("[for='input-2012']").trigger( "click" ).fauxClick()
-      6 :
-        delay : 750
-        fn : ->
-          $("[for='input-2011']").trigger( "click" ).fauxClick()
-      7 :
-        delay : 750
-        fn : ->
-          $("[for='input-2010']").trigger( "click" ).fauxClick()
-      8 :
-        delay : 750
-        fn : ->
-          els.body.animate
-            scrollTop : $(".control-row").eq(1).offset().top
-      9 :
-        delay : 1000
-        fn : ->
-          $("#x-select").trigger("liszt:open")
-          $("#x_select_chzn").fauxClick()
-      10 :
-        delay : 500
-        fn : ->
-          $("#x_select_chzn input").typeOut "fantasy position rank", ->
-            $.noop
-      11 :
-        delay : 2000
-        fn : ->
-          $("#y-select").trigger("liszt:open")
-          $("#y_select_chzn").fauxClick()
-      12 :
-        delay : 500
-        fn : ->
-          $("#y_select_chzn input").typeOut "fantasy points", ->
-            $.noop
-      13 :
-        delay : 2000
-        fn : ->
-          $("#r-select").trigger("liszt:open")
-          $("#r_select_chzn").fauxClick()
-      14 :
-        delay : 500
-        fn : ->
-          $("#r_select_chzn input").typeOut "total scrimmage yards", ->
-            $.noop
-      15 :
-        delay : 2000
-        fn : ->
-          $("#c-select").trigger("liszt:open")
-          $("#c_select_chzn").fauxClick()
-      16 :
-        delay : 500
-        fn : ->
-          $("#c_select_chzn input").typeOut "total touchdowns", ->
-            $.noop
-      17 :
-        delay : 1500
-        fn : ->
-          els.body.animate 
-            scrollTop : $("#avg-total-pair-holder").prev("p").offset().top
-      18 :
-        delay : 750
-        fn : ->
-          $("#season-label").trigger("click").fauxClick()
-      19 :
-        delay : 750
-        fn : ->
-          els.body.animate
-            scrollTop : $("#render-button").offset().top
-      20 :
-        delay : 750
-        fn : ->
-          $("#render-button").fauxClick().trigger("click")
-      21 :
-        delay : 500
-        fn : ->
-          els.body.animate
-            scrollTop : $("#d3-scatterplot").offset().top
-
     if dev
       for key of actions
         actions[key].delay = 100
 
-    i = 0
-    for key, val of actions
+    for action, i in this.demos[index]
       console.log key
-      sequencedTimeouts(key, val)
-      i++
+      sequencedTimeouts(action, i)
+    
+    # turn off the demo at the end, 2000ms after the last action fires.
+    lastTimeout = setTimeout ->
+      Plotter.demoComplete()
+    , totalTime + 2000
 
+    this.allTimeouts.push(lastTimeout)
 
-
+  demoComplete : ->
+    els.html.removeClass "demo-active"
+    els.html.addClass "demo-complete"
+    $("#stop-demo").html("Dismiss")
 
 
   demoStop : ->
+
+    # this.resetPage()
+
     for timeout in @allTimeouts
       clearTimeout(timeout)
+
+  resetPage : ->
+    if this.s.els.html.is( ".plotter-highlight-mode" )
+      this.highlightModeSwitch()
+    this.s.els.html.removeClass "demo-active demo-complete"
+    $( "input:checked" ).prop( "checked", false )
+    $( "select.variable" ).each ->
+      $(this).find( "option:checked" ).prop( "checked", false ).end().trigger( "liszt:updated" )
 
 
   data : {}
@@ -989,5 +976,21 @@ window.Plotter =
       l = arr.length
       arr[l - (n + 1)]
 
+    # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+    getRandomInt : (min, max) ->
+      return Math.floor Math.random() * (max - min + 1) + min
+
+    removeEmptyObjects : ( arr ) ->
+      cleanedArr = []
+      for obj in arr
+        if $.isEmptyObject( obj )
+          continue
+        else
+          cleanedArr.push( obj )
+      return cleanedArr
+
+    roundTwoPlaces : ( num ) ->
+      return Math.round( num * 100 ) / 100
+
 window.Plotter.init()
-# if $("html").is(".plotter-development") then Plotter.demoStart(false)
+if $("html").is(".plotter-development") then Plotter.demoStart(false)
