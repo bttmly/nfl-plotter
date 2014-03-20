@@ -55,8 +55,8 @@ window.Plotter = {
         }
       },
       vals: {
-        datasetURL: "/data/dataset.08-12.json",
-        namesURL: "/data/names.08-12.json",
+        datasetURL: "data/dataset.08-12.json",
+        namesURL: "data/names.08-12.json",
         chartPadding: 60,
         chartHeight: 450,
         chartWidth: 900,
