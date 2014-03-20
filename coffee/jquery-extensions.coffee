@@ -1,5 +1,5 @@
 $.fn.extend
-  demoClick : (options) ->
+  demoClick : ( options ) ->
 
     defaults =
       duration : 2000
@@ -8,7 +8,7 @@ $.fn.extend
       left : 25
       triggerClick : true
 
-    settings = $.extend(defaults, options or {})
+    settings = $.extend( true, {}, defaults, options or {} )
 
     if settings.triggerClick then $(this).click()
 
@@ -24,8 +24,8 @@ $.fn.extend
     return this
 
   typeOut : (str, callback) ->
-    letters = str.split('')
-    $this = $(this)
+    letters = str.split( '' )
+    $this = $( this )
 
     setDelay = (i, letter, cb) ->
       do ->
