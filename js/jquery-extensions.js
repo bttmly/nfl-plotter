@@ -9,7 +9,7 @@ $.fn.extend({
       left: 25,
       triggerClick: true
     };
-    settings = $.extend(defaults, options || {});
+    settings = $.extend(true, {}, defaults, options || {});
     if (settings.triggerClick) {
       $(this).click();
     }
